@@ -1,4 +1,5 @@
 export { Badge } from "./Badge";
+export { BadgeVencimento } from "./BadgeVencimento";
 export { Button, type ButtonProps } from "./Button";
 export { CampoSenha } from "./CampoSenha";
 export { CampoValor } from "./CampoValor";
@@ -6,6 +7,7 @@ export { Card } from "./Card";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { Dialog } from "./Dialog";
 export { Empty } from "./Empty";
+export { ErroCarregar } from "./ErroCarregar";
 export { Field, type PropsDoCampo } from "./Field";
 export { Input } from "./Input";
 export { PageHeader } from "./PageHeader";

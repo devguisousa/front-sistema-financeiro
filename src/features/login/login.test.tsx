@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { chamadasDe } from "../../test/fetch";
-import { ADMIN } from "../../test/dados";
+import { ADMIN, painelVazio } from "../../test/dados";
 import { renderApp } from "../../test/render";
 
 const comAdmin = { "GET /auth/status": () => ({ status: 200, corpo: { precisaAdmin: false } }) };
@@ -117,19 +117,24 @@ describe("tela de entrar", () => {
           corpo: { accessToken: "A1", refreshToken: "R1" },
         }),
         "GET /auth/me": () => ({ status: 200, corpo: ADMIN }),
+        ...painelVazio,
       },
     });
 
     await preencherPrimeiroAdmin("segredo123", "segredo123");
 
-    expect(await screen.findByRole("heading", { name: "Visão geral" })).toBeInTheDocument();
+    expect(await screen.findByText("01 — Visão geral")).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/");
   });
 
   it("logado, /entrar leva para a visão geral", async () => {
-    const { router } = renderApp({ rota: "/entrar", usuario: ADMIN, api: comAdmin });
+    const { router } = renderApp({
+      rota: "/entrar",
+      usuario: ADMIN,
+      api: { ...comAdmin, ...painelVazio },
+    });
 
-    expect(await screen.findByRole("heading", { name: "Visão geral" })).toBeInTheDocument();
+    expect(await screen.findByText("01 — Visão geral")).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/");
   });
 

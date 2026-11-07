@@ -1,6 +1,7 @@
 import type { RouteObject } from "react-router";
 import { PaginaLogin } from "./features/login/PaginaLogin";
 import { PaginaNaoEncontrada } from "./features/nao-encontrada/PaginaNaoEncontrada";
+import { PaginaVisaoGeral } from "./features/visao-geral/PaginaVisaoGeral";
 import { PaginaProvisoria } from "./features/PaginaProvisoria";
 import { AppLayout } from "./layouts/AppLayout";
 import { RotaProtegida } from "./layouts/RotaProtegida";
@@ -13,7 +14,7 @@ export const rotas: RouteObject[] = [
       {
         element: <AppLayout />,
         children: [
-          { index: true, element: <PaginaProvisoria tela="Visão geral" /> },
+          { index: true, element: <PaginaVisaoGeral /> },
           { path: "transacoes", element: <PaginaProvisoria tela="Transações" /> },
           { path: "transferencias", element: <PaginaProvisoria tela="Transferências" /> },
           { path: "contas-a-pagar", element: <PaginaProvisoria tela="Contas a pagar" /> },
