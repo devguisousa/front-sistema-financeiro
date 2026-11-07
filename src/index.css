@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* Tokens da marca Fluxo (mockups em projetos/design-fluxo) */
+@theme {
+  --color-abismo: #050706; /* fundo da sidebar */
+  --color-noite: #060807; /* fundo */
+  --color-poco: #070a08; /* fundo de campos */
+  --color-noite-2: #0b0f0d;
+  --color-superficie: #0c110e; /* cards */
+  --color-superficie-2: #111814;
+  --color-superficie-3: #141b17;
+  --color-linha: #18201c; /* bordas */
+  --color-linha-2: #1e2a24;
+  --color-linha-3: #232d28;
+  --color-linha-forte: #3a4a42;
+  --color-nevoa: #e9f1ec; /* texto */
+  --color-nevoa-2: #b9c4be;
+  --color-musgo: #8b978f; /* texto de apoio */
+  --color-musgo-2: #76827a;
+  --color-verde: #3df58f; /* ação, entrada */
+  --color-verde-claro: #6bffad; /* hover do primário */
+  --color-tinta: #04130a; /* texto sobre o verde */
+  --color-coral: #ff8b66; /* saída, vencido, perigo */
+
+  --font-sans: "Geist Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-noite font-sans text-[14px] leading-normal text-nevoa antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-verde);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-verde) 30%, transparent);
+  }
+}
+
+@layer components {
+  /* Rótulo em caixa alta verde acima dos títulos */
+  .kicker {
+    @apply font-mono text-[12px] leading-none font-medium tracking-[.14em] text-verde uppercase;
+  }
+
+  /* Rótulo de campo / seção */
+  .rotulo {
+    @apply font-mono text-[11px] leading-tight font-medium tracking-[.08em] text-musgo uppercase;
+  }
+
+  /* Palavra de destaque nos títulos */
+  .destaque {
+    @apply font-serif font-normal tracking-[-.01em] italic;
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
