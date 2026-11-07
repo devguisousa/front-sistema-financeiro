@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [carregando, setCarregando] = useState(() => temSessao());
+  const [saidaManual, setSaidaManual] = useState(false);
   const usuarioRef = useRef<Usuario | null>(null);
 
   useEffect(() => {
@@ -77,12 +78,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       definirSessao(tokens);
       await recarregarUsuario();
+      setSaidaManual(false);
     },
     [recarregarUsuario],
   );
 
   const sair = useCallback(async () => {
     const refreshToken = lerRefreshToken();
+    setSaidaManual(true);
     encerrarLocalmente();
     if (refreshToken) {
       await requisicao("/auth/logout", {
@@ -100,13 +103,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       usuario,
       carregando,
       ehAdmin: usuario?.papel === "ADMIN",
+      saidaManual,
       entrar: (email, senha) => entrarCom("/auth/login", email, senha),
       criarPrimeiroAdmin: (email, senha) => entrarCom("/auth/primeiro-admin", email, senha),
       sair,
       encerrarLocalmente,
       recarregarUsuario,
     }),
-    [usuario, carregando, entrarCom, sair, encerrarLocalmente, recarregarUsuario],
+    [usuario, carregando, saidaManual, entrarCom, sair, encerrarLocalmente, recarregarUsuario],
   );
 
   return <ContextoAuthReact.Provider value={valor}>{children}</ContextoAuthReact.Provider>;

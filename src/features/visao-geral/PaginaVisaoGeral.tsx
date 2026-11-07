@@ -20,6 +20,8 @@ import { usePainel } from "./usePainel";
 
 const mesPorExtenso = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
 
+const lancamentos = (n: number, de: string) => `${n} ${n === 1 ? "lançamento" : "lançamentos"} de ${de}`;
+
 function capitalizar(texto: string) {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
@@ -217,7 +219,7 @@ export function PaginaVisaoGeral() {
             rotulo={`Receitas · ${atual?.rotulo ?? ""}`}
             valor={atual?.receitas}
             cor="text-verde"
-            detalhe={`${atual?.qtdReceitas ?? 0} lançamentos de entrada`}
+            detalhe={lancamentos(atual?.qtdReceitas ?? 0, "entrada")}
             chip={
               atual &&
               anterior && (
@@ -229,7 +231,7 @@ export function PaginaVisaoGeral() {
             rotulo={`Despesas · ${atual?.rotulo ?? ""}`}
             valor={atual?.despesas}
             cor="text-coral"
-            detalhe={`${atual?.qtdDespesas ?? 0} lançamentos de saída`}
+            detalhe={lancamentos(atual?.qtdDespesas ?? 0, "saída")}
             chip={
               atual &&
               anterior && (

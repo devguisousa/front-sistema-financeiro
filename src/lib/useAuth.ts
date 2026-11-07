@@ -5,6 +5,8 @@ export type ContextoAuth = {
   usuario: Usuario | null;
   carregando: boolean;
   ehAdmin: boolean;
+  /** true depois de "Sair": o login seguinte volta para a visão geral, não para a última tela. */
+  saidaManual: boolean;
   entrar(email: string, senha: string): Promise<void>;
   criarPrimeiroAdmin(email: string, senha: string): Promise<void>;
   /** Logout normal: avisa a API e limpa tudo. */

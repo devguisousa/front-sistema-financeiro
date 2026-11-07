@@ -14,10 +14,11 @@ export function TelaCarregando() {
 
 /** Só deixa passar quem está logado; guarda a rota para voltar depois do login. */
 export function RotaProtegida() {
-  const { usuario, carregando } = useAuth();
+  const { usuario, carregando, saidaManual } = useAuth();
   const location = useLocation();
 
   if (carregando) return <TelaCarregando />;
-  if (!usuario) return <Navigate to="/entrar" replace state={{ de: location }} />;
+  // Sessão que expirou guarda a tela para voltar; "Sair" não
+  if (!usuario) return <Navigate to="/entrar" replace state={saidaManual ? undefined : { de: location }} />;
   return <Outlet />;
 }

@@ -52,6 +52,9 @@ describe("visão geral", () => {
     expect(await within(vencimentos).findByText("Aluguel")).toBeInTheDocument();
     expect(within(vencimentos).getByText("Vencida há 2 dias")).toBeInTheDocument();
 
+    expect(await screen.findByText("1 lançamento de entrada")).toBeInTheDocument();
+    expect(screen.getByText("0 lançamentos de saída")).toBeInTheDocument();
+
     const ultimas = screen.getByRole("region", { name: "Últimas transações" });
     expect(await within(ultimas).findByText("Venda de outubro")).toBeInTheDocument();
     expect(document.title).toBe("Visão geral — Fluxo");
