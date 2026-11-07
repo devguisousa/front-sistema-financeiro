@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Button, CampoValor, Field, PreviaSaldo, Select } from "../../components/ui";
 import { centavosParaCampo, formatarBRL, lerValorDigitado, paraCentavos } from "../../lib/dinheiro";
 import { tratarErroDeFormulario, validarValor } from "../../lib/formulario";
-import { useCategoriasTodas } from "../categorias/useCategorias";
+import { ehDoSistema, useCategoriasTodas } from "../categorias/useCategorias";
 import { useContasTodas, useSaldos } from "../contas/useContas";
 import type { Compromisso, ConfigCompromisso } from "./config";
 import { restante } from "./restante";
@@ -92,7 +92,7 @@ export function FormBaixa({ config, item, aoSalvar }: Props) {
           <Select {...props} value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)}>
             <option value="">Escolha a categoria</option>
             {(categorias.data ?? [])
-              .filter((c) => c.tipo === config.tipoCategoria)
+              .filter((c) => c.tipo === config.tipoCategoria && !ehDoSistema(c))
               .map((c) => (
               <option key={c.id} value={c.id}>
                 {c.nome}

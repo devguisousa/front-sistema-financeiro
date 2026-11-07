@@ -1,4 +1,6 @@
 import type { RouteObject } from "react-router";
+import { PaginaCategorias } from "./features/categorias/PaginaCategorias";
+import { PaginaContas } from "./features/contas/PaginaContas";
 import { PaginaContasPagar } from "./features/contas-pagar/PaginaContasPagar";
 import { PaginaContasReceber } from "./features/contas-receber/PaginaContasReceber";
 import { PaginaLogin } from "./features/login/PaginaLogin";
@@ -23,8 +25,8 @@ export const rotas: RouteObject[] = [
           { path: "transferencias", element: <PaginaTransferencias /> },
           { path: "contas-a-pagar", element: <PaginaContasPagar /> },
           { path: "contas-a-receber", element: <PaginaContasReceber /> },
-          { path: "contas", element: <PaginaProvisoria tela="Contas" /> },
-          { path: "categorias", element: <PaginaProvisoria tela="Categorias" /> },
+          { path: "contas", element: <PaginaContas /> },
+          { path: "categorias", element: <PaginaCategorias /> },
           { path: "configuracoes", element: <PaginaProvisoria tela="Configurações" /> },
           { path: "*", element: <PaginaNaoEncontrada /> },
         ],

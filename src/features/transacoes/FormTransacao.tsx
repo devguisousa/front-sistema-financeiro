@@ -13,7 +13,7 @@ import { dataParaApi, diaLocalDe, hojeLocal } from "../../lib/datas";
 import { centavosParaCampo, lerValorDigitado, paraCentavos } from "../../lib/dinheiro";
 import { tratarErroDeFormulario, validarValor } from "../../lib/formulario";
 import type { TipoTransacao, Transacao } from "../../lib/tipos";
-import { useCategoriasTodas } from "../categorias/useCategorias";
+import { ehDoSistema, useCategoriasTodas } from "../categorias/useCategorias";
 import { useContasTodas, useSaldos } from "../contas/useContas";
 import { type CorpoTransacao, useSalvarTransacao } from "./useTransacoes";
 
@@ -43,7 +43,7 @@ export function FormTransacao({ transacao, aoSalvar }: FormTransacaoProps) {
   const contas = useContasTodas();
   const saldos = useSaldos(contas.data);
   const categorias = useCategoriasTodas();
-  const doTipo = (categorias.data ?? []).filter((c) => c.tipo === tipo);
+  const doTipo = (categorias.data ?? []).filter((c) => c.tipo === tipo && !ehDoSistema(c));
   const salvar = useSalvarTransacao();
 
   const lido = lerValorDigitado(valor);

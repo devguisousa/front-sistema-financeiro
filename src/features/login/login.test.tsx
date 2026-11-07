@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { chamadasDe } from "../../test/fetch";
-import { ADMIN, painelVazio } from "../../test/dados";
+import { ADMIN, apiVazia, painelVazio } from "../../test/dados";
 import { renderApp } from "../../test/render";
 
 const comAdmin = { "GET /auth/status": () => ({ status: 200, corpo: { precisaAdmin: false } }) };
@@ -56,6 +56,7 @@ describe("tela de entrar", () => {
         ...comAdmin,
         "POST /auth/login": () => ({ status: 200, corpo: { accessToken: "A1", refreshToken: "R1" } }),
         "GET /auth/me": () => ({ status: 200, corpo: ADMIN }),
+        ...apiVazia,
       },
     });
 
