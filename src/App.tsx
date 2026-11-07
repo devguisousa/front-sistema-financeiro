@@ -1,6 +1,8 @@
 import type { RouteObject } from "react-router";
 import { PaginaLogin } from "./features/login/PaginaLogin";
 import { PaginaNaoEncontrada } from "./features/nao-encontrada/PaginaNaoEncontrada";
+import { PaginaTransacoes } from "./features/transacoes/PaginaTransacoes";
+import { PaginaTransferencias } from "./features/transferencias/PaginaTransferencias";
 import { PaginaVisaoGeral } from "./features/visao-geral/PaginaVisaoGeral";
 import { PaginaProvisoria } from "./features/PaginaProvisoria";
 import { AppLayout } from "./layouts/AppLayout";
@@ -15,8 +17,8 @@ export const rotas: RouteObject[] = [
         element: <AppLayout />,
         children: [
           { index: true, element: <PaginaVisaoGeral /> },
-          { path: "transacoes", element: <PaginaProvisoria tela="Transações" /> },
-          { path: "transferencias", element: <PaginaProvisoria tela="Transferências" /> },
+          { path: "transacoes", element: <PaginaTransacoes /> },
+          { path: "transferencias", element: <PaginaTransferencias /> },
           { path: "contas-a-pagar", element: <PaginaProvisoria tela="Contas a pagar" /> },
           { path: "contas-a-receber", element: <PaginaProvisoria tela="Contas a receber" /> },
           { path: "contas", element: <PaginaProvisoria tela="Contas" /> },

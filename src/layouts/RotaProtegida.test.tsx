@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { ADMIN } from "../test/dados";
+import { ADMIN, apiVazia } from "../test/dados";
 import { renderApp } from "../test/render";
 
 describe("rotas protegidas", () => {
@@ -15,7 +15,7 @@ describe("rotas protegidas", () => {
   });
 
   it("com sessão, mostra o layout com o item ativo", async () => {
-    renderApp({ rota: "/transacoes", usuario: ADMIN });
+    renderApp({ rota: "/transacoes", usuario: ADMIN, api: apiVazia });
 
     const link = await screen.findByRole("link", { name: "Transações" });
     expect(link).toHaveAttribute("aria-current", "page");

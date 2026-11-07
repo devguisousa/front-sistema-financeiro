@@ -1,14 +1,12 @@
 import type { ComponentProps } from "react";
 import { cn } from "../../lib/cn";
+import { estiloCard } from "./estilos";
 
 export function Card({ className, ...props }: ComponentProps<"section">) {
-  return (
-    <section
-      className={cn(
-        "rounded-[18px] border border-linha bg-[linear-gradient(180deg,#0C110E_0%,#090C0A_100%)] transition-colors duration-300 hover:border-[#27342D]",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <section className={cn(estiloCard, className)} {...props} />;
+}
+
+/** Cartão lateral (formulário ao lado da lista): vira região "complementary". */
+export function CardLateral({ className, ...props }: ComponentProps<"aside">) {
+  return <aside className={cn(estiloCard, className)} {...props} />;
 }

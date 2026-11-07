@@ -107,10 +107,14 @@ export function listagem<T>(chave: string, itens: T[], extra: Record<string, unk
   };
 }
 
-/** API do painel sem nenhum dado (para testes que só passam pela visão geral). */
-export const painelVazio = {
+/** API sem nenhum dado (para testes que só passam por uma tela). */
+export const apiVazia = {
   "GET /contas": () => listagem("contas", []),
+  "GET /categoria": () => listagem("categoria", []),
   "GET /contaPagar": () => listagem("contaPagar", []),
   "GET /contaReceber": () => listagem("contaReceber", [], { totalPagina: 1 }),
   "GET /transacao": () => listagem("transacao", []),
+  "GET /transferencias": () => listagem("transferencias", []),
 };
+
+export const painelVazio = apiVazia;

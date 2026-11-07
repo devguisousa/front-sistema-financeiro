@@ -2,6 +2,9 @@ import { cn } from "../../lib/cn";
 
 // Classes compartilhadas entre componentes (fora dos .tsx por causa do fast refresh)
 
+export const estiloCard =
+  "rounded-[18px] border border-linha bg-[linear-gradient(180deg,#0C110E_0%,#090C0A_100%)] transition-colors duration-300 hover:border-[#27342D]";
+
 export const estiloCampo = cn(
   "w-full min-h-11 rounded-xl border border-[#1E2722] bg-poco px-3.5 text-[14px] text-nevoa",
   "transition-[border-color,box-shadow] duration-200 placeholder:text-musgo-2 hover:border-[#2C3832]",
