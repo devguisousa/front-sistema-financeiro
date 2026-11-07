@@ -77,3 +77,41 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Fundo quadriculado e halo verde do topo das telas (mockups) */
+@layer components {
+  .fundo-grade {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 520px;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgb(233 241 236 / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(233 241 236 / 0.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 70% 100% at 50% 0%, #000 10%, transparent 75%);
+  }
+
+  .halo {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 50%;
+    filter: blur(90px);
+    background: radial-gradient(circle, rgb(61 245 143 / 0.2), rgb(61 245 143 / 0) 70%);
+  }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes gaveta {
+  from { transform: translateX(-100%); }
+  to { transform: none; }
+}
+
+@keyframes subir {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}

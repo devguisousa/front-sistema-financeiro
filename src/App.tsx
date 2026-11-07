@@ -1,13 +1,28 @@
-// Tela provisória: confere fontes e cores até a Tarefa 3 montar as rotas
-export default function App() {
-  return (
-    <main className="grid min-h-dvh place-items-center p-6">
-      <div className="flex flex-col gap-4">
-        <span className="kicker">Fluxo</span>
-        <h1 className="text-5xl font-semibold tracking-[-.05em]">
-          Seu dinheiro em <span className="destaque text-verde">fluxo</span>.
-        </h1>
-      </div>
-    </main>
-  );
-}
+import type { RouteObject } from "react-router";
+import { PaginaNaoEncontrada } from "./features/nao-encontrada/PaginaNaoEncontrada";
+import { PaginaProvisoria } from "./features/PaginaProvisoria";
+import { AppLayout } from "./layouts/AppLayout";
+import { RotaProtegida } from "./layouts/RotaProtegida";
+
+export const rotas: RouteObject[] = [
+  { path: "/entrar", element: <PaginaProvisoria tela="Entrar" /> },
+  {
+    element: <RotaProtegida />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
+          { index: true, element: <PaginaProvisoria tela="Visão geral" /> },
+          { path: "transacoes", element: <PaginaProvisoria tela="Transações" /> },
+          { path: "transferencias", element: <PaginaProvisoria tela="Transferências" /> },
+          { path: "contas-a-pagar", element: <PaginaProvisoria tela="Contas a pagar" /> },
+          { path: "contas-a-receber", element: <PaginaProvisoria tela="Contas a receber" /> },
+          { path: "contas", element: <PaginaProvisoria tela="Contas" /> },
+          { path: "categorias", element: <PaginaProvisoria tela="Categorias" /> },
+          { path: "configuracoes", element: <PaginaProvisoria tela="Configurações" /> },
+          { path: "*", element: <PaginaNaoEncontrada /> },
+        ],
+      },
+    ],
+  },
+];
