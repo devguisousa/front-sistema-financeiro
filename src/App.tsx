@@ -1,17 +1,11 @@
 import type { RouteObject } from "react-router";
-import { PaginaCategorias } from "./features/categorias/PaginaCategorias";
-import { PaginaContas } from "./features/contas/PaginaContas";
-import { PaginaConfiguracoes } from "./features/configuracoes/PaginaConfiguracoes";
-import { PaginaContasPagar } from "./features/contas-pagar/PaginaContasPagar";
-import { PaginaContasReceber } from "./features/contas-receber/PaginaContasReceber";
 import { PaginaLogin } from "./features/login/PaginaLogin";
 import { PaginaNaoEncontrada } from "./features/nao-encontrada/PaginaNaoEncontrada";
-import { PaginaTransacoes } from "./features/transacoes/PaginaTransacoes";
-import { PaginaTransferencias } from "./features/transferencias/PaginaTransferencias";
-import { PaginaVisaoGeral } from "./features/visao-geral/PaginaVisaoGeral";
 import { AppLayout } from "./layouts/AppLayout";
 import { RotaProtegida } from "./layouts/RotaProtegida";
 
+// Telas internas carregam sob demanda: o login abre sem baixar o app inteiro
+// (o Recharts da visão geral é a maior dependência)
 export const rotas: RouteObject[] = [
   { path: "/entrar", element: <PaginaLogin /> },
   {
@@ -20,14 +14,54 @@ export const rotas: RouteObject[] = [
       {
         element: <AppLayout />,
         children: [
-          { index: true, element: <PaginaVisaoGeral /> },
-          { path: "transacoes", element: <PaginaTransacoes /> },
-          { path: "transferencias", element: <PaginaTransferencias /> },
-          { path: "contas-a-pagar", element: <PaginaContasPagar /> },
-          { path: "contas-a-receber", element: <PaginaContasReceber /> },
-          { path: "contas", element: <PaginaContas /> },
-          { path: "categorias", element: <PaginaCategorias /> },
-          { path: "configuracoes", element: <PaginaConfiguracoes /> },
+          {
+            index: true,
+            lazy: async () => ({
+              Component: (await import("./features/visao-geral/PaginaVisaoGeral")).PaginaVisaoGeral,
+            }),
+          },
+          {
+            path: "transacoes",
+            lazy: async () => ({
+              Component: (await import("./features/transacoes/PaginaTransacoes")).PaginaTransacoes,
+            }),
+          },
+          {
+            path: "transferencias",
+            lazy: async () => ({
+              Component: (await import("./features/transferencias/PaginaTransferencias")).PaginaTransferencias,
+            }),
+          },
+          {
+            path: "contas-a-pagar",
+            lazy: async () => ({
+              Component: (await import("./features/contas-pagar/PaginaContasPagar")).PaginaContasPagar,
+            }),
+          },
+          {
+            path: "contas-a-receber",
+            lazy: async () => ({
+              Component: (await import("./features/contas-receber/PaginaContasReceber")).PaginaContasReceber,
+            }),
+          },
+          {
+            path: "contas",
+            lazy: async () => ({
+              Component: (await import("./features/contas/PaginaContas")).PaginaContas,
+            }),
+          },
+          {
+            path: "categorias",
+            lazy: async () => ({
+              Component: (await import("./features/categorias/PaginaCategorias")).PaginaCategorias,
+            }),
+          },
+          {
+            path: "configuracoes",
+            lazy: async () => ({
+              Component: (await import("./features/configuracoes/PaginaConfiguracoes")).PaginaConfiguracoes,
+            }),
+          },
           { path: "*", element: <PaginaNaoEncontrada /> },
         ],
       },

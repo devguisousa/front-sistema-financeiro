@@ -33,6 +33,19 @@ function cspNoBuild(): Plugin {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), cspNoBuild()],
+  build: {
+    rolldownOptions: {
+      output: {
+        // Bibliotecas em chunks próprios: mudam pouco e ficam no cache do navegador
+        codeSplitting: {
+          groups: [
+            { name: "react", test: /node_modules[\\/](react|react-dom|scheduler|react-router)[\\/]/ },
+            { name: "vendor", test: /node_modules[\\/](?!recharts|d3-|victory-vendor)/ },
+          ],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       // O front chama /api/...; o Vite repassa para a API sem o prefixo
