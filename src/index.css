@@ -115,3 +115,35 @@
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
+
+/* Borda com brilho verde girando (cartão do login) */
+@property --angulo {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes girar {
+  to { --angulo: 360deg; }
+}
+
+@keyframes letreiro {
+  to { transform: translateX(-50%); }
+}
+
+@layer components {
+  .borda-viva {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(180deg, #0d1310, #090c0a) padding-box,
+      conic-gradient(from var(--angulo), #18201c 0deg, #18201c 200deg, #3df58f 260deg, #18201c 320deg, #18201c 360deg) border-box;
+    animation: girar 7s linear infinite;
+  }
+
+  .letreiro {
+    display: flex;
+    gap: 40px;
+    width: max-content;
+    animation: letreiro 40s linear infinite;
+  }
+}

@@ -1,11 +1,12 @@
 import type { RouteObject } from "react-router";
+import { PaginaLogin } from "./features/login/PaginaLogin";
 import { PaginaNaoEncontrada } from "./features/nao-encontrada/PaginaNaoEncontrada";
 import { PaginaProvisoria } from "./features/PaginaProvisoria";
 import { AppLayout } from "./layouts/AppLayout";
 import { RotaProtegida } from "./layouts/RotaProtegida";
 
 export const rotas: RouteObject[] = [
-  { path: "/entrar", element: <PaginaProvisoria tela="Entrar" /> },
+  { path: "/entrar", element: <PaginaLogin /> },
   {
     element: <RotaProtegida />,
     children: [

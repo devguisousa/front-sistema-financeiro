@@ -1,5 +1,6 @@
 export { Badge } from "./Badge";
 export { Button, type ButtonProps } from "./Button";
+export { CampoSenha } from "./CampoSenha";
 export { CampoValor } from "./CampoValor";
 export { Card } from "./Card";
 export { ConfirmDialog } from "./ConfirmDialog";
