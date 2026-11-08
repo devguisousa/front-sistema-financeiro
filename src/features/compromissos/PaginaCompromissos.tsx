@@ -1,4 +1,4 @@
-import { CalendarClock, Pencil, Plus, Trash2 } from "lucide-react";
+import { CalendarClock, History, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -24,12 +24,13 @@ import {
 } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { diasAteVencimento, formatarVencimento } from "../../lib/datas";
-import { formatarBRL, formatarValor } from "../../lib/dinheiro";
+import { formatarBRL, formatarValor, paraCentavos } from "../../lib/dinheiro";
 import { mensagemDoErro } from "../../lib/erros";
 import { useTitulo } from "../../lib/titulo";
 import type { Compromisso, ConfigCompromisso, Situacao } from "./config";
 import { FormBaixa } from "./FormBaixa";
 import { FormCompromisso } from "./FormCompromisso";
+import { HistoricoBaixas } from "./HistoricoBaixas";
 import { restante } from "./restante";
 import { useApagarCompromisso, useListaCompromissos, useResumoCompromissos } from "./useCompromissos";
 
@@ -75,6 +76,7 @@ export function PaginaCompromissos({ config }: { config: ConfigCompromisso }) {
 
   const [formulario, setFormulario] = useState<{ item?: Compromisso } | null>(null);
   const [baixa, setBaixa] = useState<Compromisso | null>(null);
+  const [historico, setHistorico] = useState<Compromisso | null>(null);
   const [paraApagar, setParaApagar] = useState<Compromisso | null>(null);
 
   function filtrar(chave: string, valor: string | undefined) {
@@ -224,6 +226,17 @@ export function PaginaCompromissos({ config }: { config: ConfigCompromisso }) {
                               {config.textos.baixa}
                             </Button>
                           )}
+                          {paraCentavos(c.valorQuitado) > 0 && (
+                            <Button
+                              tamanho="icone"
+                              variante="fantasma"
+                              aria-label={`${config.textos.historico} de ${c.descricao}`}
+                              title={config.textos.historico}
+                              onClick={() => setHistorico(c)}
+                            >
+                              <History size={15} aria-hidden="true" />
+                            </Button>
+                          )}
                           {(
                             <>
                               <Button
@@ -280,11 +293,20 @@ export function PaginaCompromissos({ config }: { config: ConfigCompromisso }) {
         {baixa && <FormBaixa config={config} item={baixa} aoSalvar={() => setBaixa(null)} />}
       </Dialog>
 
+      <Dialog
+        aberto={historico !== null}
+        aoMudar={(aberto) => !aberto && setHistorico(null)}
+        titulo={config.textos.historico}
+        descricao={historico?.descricao}
+      >
+        {historico && <HistoricoBaixas config={config} item={historico} />}
+      </Dialog>
+
       <ConfirmDialog
         aberto={paraApagar !== null}
         aoMudar={(aberto) => !aberto && setParaApagar(null)}
         titulo={`Apagar "${paraApagar?.descricao ?? ""}"?`}
-        descricao="Só dá para apagar quando ainda não há pagamentos ou recebimentos registrados."
+        descricao="Só dá para apagar quando não há pagamentos ou recebimentos registrados. Apague-os antes pelo histórico."
         textoConfirmar="Apagar"
         perigo
         carregando={apagar.isPending}

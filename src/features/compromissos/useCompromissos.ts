@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { buscarTodas, normalizarPagina, requisicao } from "../../lib/api";
 import { diasAteVencimento } from "../../lib/datas";
 import { chaves, invalidarLancamento } from "../../lib/queryClient";
+import type { Baixa } from "../../lib/tipos";
 import type { Compromisso, ConfigCompromisso, Situacao } from "./config";
 import { restante } from "./restante";
 
@@ -95,6 +96,23 @@ export function useRegistrarBaixa(config: ConfigCompromisso) {
   return useMutation({
     mutationFn: ({ id, corpo }: { id: number; corpo: CorpoBaixa }) =>
       requisicao(config.rotaBaixa(id), { metodo: "POST", corpo }),
+    onSuccess: () => invalidarLancamento(queryClient),
+  });
+}
+
+/** Pagamentos/recebimentos já feitos de um compromisso, do mais novo ao mais antigo. */
+export function useBaixas(config: ConfigCompromisso, id: number) {
+  return useQuery({
+    queryKey: [...config.chaveQuery, "baixas", id],
+    queryFn: () => buscarTodas<Baixa>(config.rotaBaixas(id), config.chaveBaixas, {}, "pagina"),
+  });
+}
+
+/** Apaga um pagamento/recebimento: a transação some e o compromisso reabre. */
+export function useApagarBaixa(config: ConfigCompromisso) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => requisicao<void>(config.rotaApagarBaixa(id), { metodo: "DELETE" }),
     onSuccess: () => invalidarLancamento(queryClient),
   });
 }

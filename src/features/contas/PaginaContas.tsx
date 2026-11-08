@@ -11,6 +11,7 @@ import {
   PageHeader,
   Skeleton,
 } from "../../components/ui";
+import { formatarData } from "../../lib/datas";
 import { formatarBRL, formatarValor, paraCentavos } from "../../lib/dinheiro";
 import { mensagemDoErro } from "../../lib/erros";
 import { useTitulo } from "../../lib/titulo";
@@ -73,9 +74,23 @@ function CartaoConta({
       </div>
       {saldo ? (
         <div className="flex flex-col gap-2.5">
-          <Linha rotulo="Saldo inicial" valor={formatarValor(saldo.saldoInicial)} />
-          <Linha rotulo="+ Receitas" valor={formatarValor(saldo.totalReceitas)} />
-          <Linha rotulo="− Despesas" valor={formatarValor(saldo.totalDespesas)} />
+          {saldo.saldoDefinidoEm ? (
+            <>
+              {/* Saldo digitado pela pessoa: só conta o que veio depois */}
+              <Linha
+                rotulo={`Saldo definido em ${formatarData(saldo.saldoDefinidoEm)}`}
+                valor={formatarValor(saldo.saldoInicial)}
+              />
+              <Linha rotulo="+ Receitas depois" valor={formatarValor(saldo.totalReceitas)} />
+              <Linha rotulo="− Despesas depois" valor={formatarValor(saldo.totalDespesas)} />
+            </>
+          ) : (
+            <>
+              <Linha rotulo="Saldo inicial" valor={formatarValor(saldo.saldoInicial)} />
+              <Linha rotulo="+ Receitas" valor={formatarValor(saldo.totalReceitas)} />
+              <Linha rotulo="− Despesas" valor={formatarValor(saldo.totalDespesas)} />
+            </>
+          )}
           <hr className="border-superficie-3" />
           <Linha rotulo="= Saldo atual" valor={formatarValor(saldo.saldoAtual)} destaque />
         </div>
@@ -190,7 +205,15 @@ export function PaginaContas() {
         aoMudar={(aberto) => !aberto && setFormulario(null)}
         titulo={formulario?.conta ? "Editar conta" : "Nova conta"}
       >
-        {formulario && <FormConta conta={formulario.conta} aoSalvar={() => setFormulario(null)} />}
+        {formulario && (
+          <FormConta
+            // Se o saldo chegar depois de abrir, recomeça com ele preenchido
+            key={formulario.conta && saldos.data?.[formulario.conta.id] ? "com-saldo" : "sem-saldo"}
+            conta={formulario.conta}
+            saldo={formulario.conta ? saldos.data?.[formulario.conta.id] : undefined}
+            aoSalvar={() => setFormulario(null)}
+          />
+        )}
       </Dialog>
 
       <ConfirmDialog

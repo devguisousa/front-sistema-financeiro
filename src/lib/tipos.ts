@@ -18,14 +18,29 @@ export type Conta = {
   nome: string;
   saldoInicial: string;
   criadoEm: string;
+  /** Quando a pessoa digitou o saldo na edição (null = nunca). */
+  saldoDefinidoEm: string | null;
 };
 
+/**
+ * Saldo de uma conta. Com saldoDefinidoEm, saldoInicial é o valor digitado e
+ * receitas/despesas contam só o que foi lançado depois.
+ */
 export type Saldo = {
   contaId: number;
   saldoInicial: string;
   totalReceitas: string;
   totalDespesas: string;
   saldoAtual: string;
+  saldoDefinidoEm: string | null;
+};
+
+/** Pagamento de conta a pagar ou recebimento de conta a receber. */
+export type Baixa = {
+  id: number;
+  valor: string;
+  data: string;
+  contaId: number;
 };
 
 export type Categoria = { id: number; nome: string; tipo: TipoTransacao };

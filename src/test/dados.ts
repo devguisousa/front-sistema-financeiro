@@ -1,4 +1,5 @@
 import type {
+  Baixa,
   Categoria,
   Conta,
   ContaPagar,
@@ -31,6 +32,7 @@ export const conta = (o: Partial<Conta> = {}): Conta => ({
   nome: "Banco",
   saldoInicial: "0.00",
   criadoEm: "2026-10-01T12:00:00.000Z",
+  saldoDefinidoEm: null,
   ...o,
 });
 
@@ -40,6 +42,15 @@ export const saldo = (o: Partial<Saldo> = {}): Saldo => ({
   totalReceitas: "0.00",
   totalDespesas: "0.00",
   saldoAtual: "0.00",
+  saldoDefinidoEm: null,
+  ...o,
+});
+
+export const baixa = (o: Partial<Baixa> = {}): Baixa => ({
+  id: 1,
+  valor: "100.00",
+  data: "2026-11-03T15:00:00.000Z",
+  contaId: 1,
   ...o,
 });
 

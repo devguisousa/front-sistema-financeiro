@@ -24,6 +24,11 @@ export type ConfigCompromisso = {
   statusApi: Record<Situacao, string>;
   rotuloSituacao: Record<Situacao, string>;
   rotaBaixa(id: number): string;
+  /** Pagamentos/recebimentos já feitos de um compromisso (usa pagina/limite) */
+  rotaBaixas(id: number): string;
+  chaveBaixas: "pagamentoContaPagar" | "recebimentos";
+  /** Apaga um pagamento/recebimento e desfaz o efeito dele */
+  rotaApagarBaixa(id: number): string;
   tipoCategoria: TipoTransacao;
   maxDescricao: number;
   textos: {
@@ -37,6 +42,14 @@ export type ConfigCompromisso = {
     contaDaBaixa: string; // "Sai da conta"
     categoriaDaBaixa: string;
     vazio: string;
+    historico: string; // "Pagamentos feitos"
+    semBaixas: string;
+    apagarBaixa: string; // "Apagar pagamento"
+    baixaApagada: string;
+    /** O que acontece ao apagar (texto da confirmação) */
+    efeitoApagar: string;
+    /** Idem, quando o saldo da conta foi digitado depois da baixa */
+    efeitoApagarSemSaldo: string;
   };
   chaveQuery: readonly string[];
   normalizar(item: unknown): Compromisso;
@@ -61,6 +74,9 @@ export const configPagar: ConfigCompromisso = {
   statusApi: STATUS_PAGAR,
   rotuloSituacao: { pendente: "Pendente", parcial: "Parcial", quitado: "Paga" },
   rotaBaixa: (id) => `/pagamentoPagar/contaPagar/${id}`,
+  rotaBaixas: (id) => `/pagamentoPagar/contaPagar/${id}`,
+  chaveBaixas: "pagamentoContaPagar",
+  rotaApagarBaixa: (id) => `/pagamentoPagar/${id}`,
   tipoCategoria: "DESPESA",
   maxDescricao: 150,
   textos: {
@@ -74,6 +90,13 @@ export const configPagar: ConfigCompromisso = {
     contaDaBaixa: "Sai da conta",
     categoriaDaBaixa: "Categoria (despesa)",
     vazio: "Nenhuma conta a pagar",
+    historico: "Pagamentos feitos",
+    semBaixas: "Nenhum pagamento registrado.",
+    apagarBaixa: "Apagar pagamento",
+    baixaApagada: "Pagamento apagado",
+    efeitoApagar: "O valor volta para a conta de onde saiu e a conta a pagar fica em aberto de novo.",
+    efeitoApagarSemSaldo:
+      "A conta a pagar fica em aberto de novo. O saldo da conta não muda, porque você o definiu depois deste pagamento.",
   },
   chaveQuery: chaves.contasPagar,
   normalizar: (item) => {
@@ -99,6 +122,9 @@ export const configReceber: ConfigCompromisso = {
   statusApi: STATUS_RECEBER,
   rotuloSituacao: { pendente: "Pendente", parcial: "Parcial", quitado: "Recebida" },
   rotaBaixa: (id) => `/contaReceber/${id}/recebimentos`,
+  rotaBaixas: (id) => `/contaReceber/${id}/recebimentos`,
+  chaveBaixas: "recebimentos",
+  rotaApagarBaixa: (id) => `/recebimentos/${id}`,
   tipoCategoria: "RECEITA",
   maxDescricao: 200,
   textos: {
@@ -112,6 +138,13 @@ export const configReceber: ConfigCompromisso = {
     contaDaBaixa: "Entra na conta",
     categoriaDaBaixa: "Categoria (receita)",
     vazio: "Nenhuma conta a receber",
+    historico: "Recebimentos feitos",
+    semBaixas: "Nenhum recebimento registrado.",
+    apagarBaixa: "Apagar recebimento",
+    baixaApagada: "Recebimento apagado",
+    efeitoApagar: "O valor sai da conta onde entrou e a conta a receber fica em aberto de novo.",
+    efeitoApagarSemSaldo:
+      "A conta a receber fica em aberto de novo. O saldo da conta não muda, porque você o definiu depois deste recebimento.",
   },
   chaveQuery: chaves.contasReceber,
   normalizar: (item) => {

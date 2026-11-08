@@ -3,13 +3,18 @@ import { toast } from "sonner";
 import { Button, CampoValor, Field, Input } from "../../components/ui";
 import { centavosParaCampo, lerValorDigitado, paraCentavos } from "../../lib/dinheiro";
 import { tratarErroDeFormulario, validarValor } from "../../lib/formulario";
-import type { Conta } from "../../lib/tipos";
-import { useSalvarConta } from "./useContas";
+import type { Conta, Saldo } from "../../lib/tipos";
+import { type CorpoConta, useSalvarConta } from "./useContas";
 
-export function FormConta({ conta, aoSalvar }: { conta?: Conta | undefined; aoSalvar(): void }) {
+type Props = { conta?: Conta | undefined; saldo?: Saldo | undefined; aoSalvar(): void };
+
+export function FormConta({ conta, saldo, aoSalvar }: Props) {
+  const editando = conta !== undefined;
+  // Na edição o campo é o saldo atual: o valor digitado vira o saldo da conta
+  const campoSaldo = editando ? "saldoAtual" : "saldoInicial";
   const [nome, setNome] = useState(conta?.nome ?? "");
-  const [saldoInicial, setSaldoInicial] = useState(
-    conta ? centavosParaCampo(paraCentavos(conta.saldoInicial)) : "",
+  const [valor, setValor] = useState(
+    editando && saldo ? centavosParaCampo(paraCentavos(saldo.saldoAtual)) : "",
   );
   const [campos, setCampos] = useState<Record<string, string>>({});
   const salvar = useSalvarConta();
@@ -18,16 +23,27 @@ export function FormConta({ conta, aoSalvar }: { conta?: Conta | undefined; aoSa
     evento.preventDefault();
     const erros: Record<string, string> = {};
     if (!nome.trim()) erros.nome = "Informe o nome.";
-    // Em branco = começa do zero
-    const checado = validarValor(saldoInicial.trim() ? lerValorDigitado(saldoInicial) : "0.00", {
-      permitirZero: true,
-    });
-    if (!checado.ok) erros.saldoInicial = checado.erro;
+
+    const corpo: CorpoConta = { nome: nome.trim() };
+    if (!editando) {
+      // Em branco = começa do zero
+      const checado = validarValor(valor.trim() ? lerValorDigitado(valor) : "0.00", { permitirZero: true });
+      if (checado.ok) corpo.saldoInicial = checado.valor;
+      else erros.saldoInicial = checado.erro;
+    } else if (valor.trim()) {
+      // Só manda o saldo se mudou: igual ao atual, a conta segue como está
+      const checado = validarValor(lerValorDigitado(valor), { permitirZero: true });
+      if (!checado.ok) erros.saldoAtual = checado.erro;
+      else if (!saldo || paraCentavos(checado.valor) !== paraCentavos(saldo.saldoAtual)) {
+        corpo.saldoAtual = checado.valor;
+      }
+    }
+
     setCampos(erros);
-    if (Object.keys(erros).length || !checado.ok) return;
+    if (Object.keys(erros).length) return;
 
     try {
-      await salvar.mutateAsync({ id: conta?.id, corpo: { nome: nome.trim(), saldoInicial: checado.valor } });
+      await salvar.mutateAsync({ id: conta?.id, corpo });
       toast.success("Conta salva");
       aoSalvar();
     } catch (erro) {
@@ -49,11 +65,15 @@ export function FormConta({ conta, aoSalvar }: { conta?: Conta | undefined; aoSa
         )}
       </Field>
       <Field
-        rotulo="Saldo inicial"
-        erro={campos.saldoInicial}
-        dica={conta ? "Baixar o saldo inicial não pode deixar a conta negativa." : "Pode ser zero."}
+        rotulo={editando ? "Saldo atual" : "Saldo inicial"}
+        erro={campos[campoSaldo]}
+        dica={
+          editando
+            ? "O valor digitado vira o saldo da conta. Pagamentos e recebimentos feitos depois continuam mexendo nele."
+            : "Pode ser zero."
+        }
       >
-        {(props) => <CampoValor {...props} valor={saldoInicial} aoMudar={setSaldoInicial} />}
+        {(props) => <CampoValor {...props} valor={valor} aoMudar={setValor} />}
       </Field>
       <Button type="submit" variante="primario" carregando={salvar.isPending} className="sm:self-end">
         Salvar

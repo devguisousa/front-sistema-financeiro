@@ -37,7 +37,8 @@ function useInvalidarContas() {
     );
 }
 
-export type CorpoConta = { nome: string; saldoInicial: string };
+/** Criar manda saldoInicial; editar manda saldoAtual só quando o saldo mudou. */
+export type CorpoConta = { nome: string; saldoInicial?: string; saldoAtual?: string };
 
 export function useSalvarConta() {
   const invalidar = useInvalidarContas();
