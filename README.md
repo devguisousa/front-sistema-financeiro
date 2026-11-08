@@ -1,7 +1,8 @@
 # Fluxo — front-end
 
 Interface web da API **sistema_financeiro**: contas, categorias, transações,
-transferências e contas a pagar/receber, com papéis ADMIN e USUARIO.
+transferências e contas a pagar/receber. Cada pessoa cria a própria conta e vê só
+os próprios dados.
 Visual da marca Fluxo (preto e verde), feito a partir dos mockups em
 `projetos/design-fluxo`.
 
@@ -33,12 +34,13 @@ Em desenvolvimento, o front chama `/api/...` e o Vite repassa para
 | `lint` | oxlint (React, acessibilidade, Vitest), avisos contam como erro |
 | `test` | Testes (Vitest + jsdom) |
 
-## Primeiro acesso
+## Cadastro e primeiro acesso
 
-Não existe cadastro público. Enquanto o banco não tem nenhum ADMIN, a tela
-**Entrar** mostra "Criar conta de administrador" (rotas `GET /auth/status` e
-`POST /auth/primeiro-admin` do back-end). Depois disso, a tela mostra só o
-login, e novos usuários são cadastrados por um ADMIN em **Configurações**.
+O cadastro é aberto: a tela **Entrar** tem a aba **Criar conta** (`POST /auth/cadastro`),
+que cria um `USUARIO` com dados próprios e já entra no sistema.
+
+Enquanto o banco não tem nenhum ADMIN, a tela também oferece "Criar conta de
+administrador" (`GET /auth/status` e `POST /auth/primeiro-admin`).
 
 > Enquanto não houver ADMIN, quem abrir o site primeiro vira administrador.
 > Em produção, crie o admin logo depois do deploy (pelo site ou com
@@ -46,8 +48,10 @@ login, e novos usuários são cadastrados por um ADMIN em **Configurações**.
 
 ## Papéis
 
-- **USUARIO:** vê tudo e lança transações, transferências, pagamentos e recebimentos.
-- **ADMIN:** tudo, inclusive cadastros, edição, exclusão, estornos e usuários.
+- **USUARIO e ADMIN:** usam todas as telas financeiras (contas, categorias, transações,
+  transferências, contas a pagar/receber), sempre só com os próprios dados.
+- **ADMIN:** além disso, gerencia usuários em **Configurações** (criar, mudar papel e
+  apagar; apagar um usuário apaga os dados dele).
 
 O front esconde o que o papel não pode usar, mas quem bloqueia de verdade é a API.
 
@@ -80,25 +84,26 @@ src/
 
 ## Produção
 
-```bash
-npm run build      # gera dist/
-```
+Publicado na Vercel (projeto `sistema-financeiro-front`), em
+https://sistema-financeiro-front-nine.vercel.app. O push na `main` publica sozinho.
+`vercel.json` reescreve todas as rotas para `index.html` (as rotas são do navegador).
 
-- Sirva o `dist/` como site estático, com fallback para `index.html` (as rotas
-  são do navegador).
-- Coloque a API no **mesmo domínio**, em `/api`: o build inclui uma
-  Content-Security-Policy com `connect-src 'self'`. Exemplo com Nginx:
+- API em outro domínio: defina `VITE_API_URL` (URL da API) no build. O `vite.config.ts`
+  libera só essa origem no `connect-src` da Content-Security-Policy.
+- A API precisa liberar a origem do front em `CORS_ORIGENS`. Se o domínio do front
+  mudar, atualize essa variável na API e publique a API de novo.
+- Sem `VITE_API_URL`, o front chama `/api` no mesmo domínio. Exemplo com Nginx:
 
   ```nginx
   location /api/ { proxy_pass http://127.0.0.1:3000/; }
   location /     { try_files $uri /index.html; }
   ```
 
-- Para apontar para outra URL, defina `VITE_API_URL` no build (e ajuste a CSP em
-  `vite.config.ts`).
+- Build local: `npm run build` gera o `dist/`.
 
 ## Riscos aceitos
 
 - Refresh token no `localStorage`: um XSS conseguiria lê-lo. Mitigação: CSP no
   build e nenhum HTML injetado. Melhoria sugerida: cookie `httpOnly` no back-end.
 - Primeiro acesso aberto até existir um ADMIN (veja acima).
+- Cadastro aberto: qualquer pessoa pode criar conta. A API limita as tentativas por IP.
