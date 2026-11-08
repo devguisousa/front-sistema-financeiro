@@ -5,13 +5,16 @@ import { defineConfig } from "vitest/config";
 
 // CSP só no build: no dev o HMR do Vite usa script inline.
 // 'unsafe-inline' em style é exigido pelo Recharts (estilos inline nos gráficos).
+// Se VITE_API_URL apontar para outro domínio, libera só essa origem no connect-src.
+const API_ORIGEM = process.env.VITE_API_URL ? new URL(process.env.VITE_API_URL).origin : "";
+
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self' ${API_ORIGEM}`.trim(),
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
