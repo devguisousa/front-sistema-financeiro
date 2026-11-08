@@ -7,7 +7,6 @@ import {
   listagem,
   saldo,
   transacao,
-  USUARIO,
 } from "../../test/dados";
 import { renderApp } from "../../test/render";
 
@@ -71,14 +70,4 @@ describe("visão geral", () => {
     expect(screen.getByRole("link", { name: /cadastrar conta/i })).toHaveAttribute("href", "/contas");
   });
 
-  it("sem contas, USUARIO não vê o botão de cadastrar", async () => {
-    renderApp({
-      rota: "/",
-      usuario: USUARIO,
-      api: { ...vazio, "GET /contas": () => listagem("contas", []) },
-    });
-
-    expect(await screen.findByText("Cadastre sua primeira conta")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /cadastrar conta/i })).not.toBeInTheDocument();
-  });
 });

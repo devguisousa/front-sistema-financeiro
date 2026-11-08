@@ -27,7 +27,6 @@ import { diasAteVencimento, formatarVencimento } from "../../lib/datas";
 import { formatarBRL, formatarValor } from "../../lib/dinheiro";
 import { mensagemDoErro } from "../../lib/erros";
 import { useTitulo } from "../../lib/titulo";
-import { useAuth } from "../../lib/useAuth";
 import type { Compromisso, ConfigCompromisso, Situacao } from "./config";
 import { FormBaixa } from "./FormBaixa";
 import { FormCompromisso } from "./FormCompromisso";
@@ -58,7 +57,6 @@ function Numero({ rotulo, qtd, total, alerta }: { rotulo: string; qtd?: number; 
 
 export function PaginaCompromissos({ config }: { config: ConfigCompromisso }) {
   useTitulo(config.tela);
-  const { ehAdmin } = useAuth();
   const [params, setParams] = useSearchParams();
 
   const situacaoUrl = params.get("status");
@@ -108,7 +106,7 @@ export function PaginaCompromissos({ config }: { config: ConfigCompromisso }) {
         titulo={config.tela}
         descricao={config.descricao}
         acoes={
-          ehAdmin && (
+          (
             <Button variante="primario" onClick={() => setFormulario({})}>
               <Plus size={16} aria-hidden="true" />
               {config.textos.novo}
@@ -172,7 +170,7 @@ export function PaginaCompromissos({ config }: { config: ConfigCompromisso }) {
               temFiltro ? (
                 <Button onClick={() => setParams({})}>Limpar filtros</Button>
               ) : (
-                ehAdmin && (
+                (
                   <Button variante="primario" onClick={() => setFormulario({})}>
                     <Plus size={16} aria-hidden="true" />
                     {config.textos.novo}
@@ -226,7 +224,7 @@ export function PaginaCompromissos({ config }: { config: ConfigCompromisso }) {
                               {config.textos.baixa}
                             </Button>
                           )}
-                          {ehAdmin && (
+                          {(
                             <>
                               <Button
                                 tamanho="icone"

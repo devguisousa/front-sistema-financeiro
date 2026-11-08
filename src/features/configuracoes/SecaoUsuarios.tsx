@@ -133,7 +133,7 @@ export function SecaoUsuarios() {
         aberto={paraRemover !== null}
         aoMudar={(aberto) => !aberto && setParaRemover(null)}
         titulo={`Remover ${paraRemover?.email ?? ""}?`}
-        descricao="A pessoa perde o acesso na hora. Os lançamentos que ela fez continuam."
+        descricao="A pessoa perde o acesso na hora e todos os dados financeiros dela (contas, categorias, transações, contas a pagar e a receber) são apagados. Não dá para desfazer."
         textoConfirmar="Remover"
         perigo
         carregando={remover.isPending}

@@ -106,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       saidaManual,
       entrar: (email, senha) => entrarCom("/auth/login", email, senha),
       criarPrimeiroAdmin: (email, senha) => entrarCom("/auth/primeiro-admin", email, senha),
+      cadastrar: (email, senha) => entrarCom("/auth/cadastro", email, senha),
       sair,
       encerrarLocalmente,
       recarregarUsuario,

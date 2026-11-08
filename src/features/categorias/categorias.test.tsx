@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Usuario } from "../../lib/tipos";
 import { chamadasDe, type RotasMock } from "../../test/fetch";
-import { ADMIN, categoria, listagem, USUARIO } from "../../test/dados";
+import { ADMIN, categoria, listagem } from "../../test/dados";
 import { renderApp } from "../../test/render";
 
 function abrir(usuario: Usuario = ADMIN, extra: RotasMock = {}) {
@@ -40,14 +40,6 @@ describe("categorias", () => {
     expect(within(despesas).getByText("Sistema")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Editar Transferência enviada" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Editar Aluguel" })).toBeInTheDocument();
-  });
-
-  it("USUARIO não vê Nova categoria nem ações", async () => {
-    abrir(USUARIO);
-
-    expect(await screen.findByText("Vendas")).toBeInTheDocument();
-    expect(screen.queryByRole("complementary", { name: "Nova categoria" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^editar/i })).not.toBeInTheDocument();
   });
 
   it("cria categoria com nome e tipo", async () => {

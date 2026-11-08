@@ -4,7 +4,7 @@ import { Button, CampoSenha, Field, Input } from "../../components/ui";
 import { separarErros } from "../../lib/erros";
 import { useAuth } from "../../lib/useAuth";
 
-export function FormLogin() {
+export function FormLogin({ aoCriarConta }: { aoCriarConta(): void }) {
   const { entrar } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -38,7 +38,7 @@ export function FormLogin() {
         <h2 id="titulo-login" className="text-[30px] font-semibold tracking-[-.04em]">
           Entrar
         </h2>
-        <p className="text-musgo">Use o e-mail e a senha que um administrador criou para você.</p>
+        <p className="text-musgo">Entre com seu e-mail e senha.</p>
       </div>
 
       {geral && (
@@ -85,7 +85,10 @@ export function FormLogin() {
       <div className="flex flex-col gap-2.5 border-t border-superficie-3 pt-4 text-[12px] text-musgo">
         <p className="flex items-start gap-1.5">
           <Info size={14} className="mt-0.5 flex-none" aria-hidden="true" />
-          Não tem acesso? Peça a um ADMIN — o cadastro não é aberto.
+          Não tem conta?{" "}
+          <button type="button" onClick={aoCriarConta} className="text-verde underline">
+            Criar conta
+          </button>
         </p>
         <p className="flex items-start gap-1.5">
           <Lock size={14} className="mt-0.5 flex-none" aria-hidden="true" />

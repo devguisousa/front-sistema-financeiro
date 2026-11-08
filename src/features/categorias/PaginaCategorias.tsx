@@ -16,7 +16,6 @@ import {
 import { mensagemDoErro } from "../../lib/erros";
 import { useTitulo } from "../../lib/titulo";
 import type { Categoria, TipoTransacao } from "../../lib/tipos";
-import { useAuth } from "../../lib/useAuth";
 import { FormCategoria } from "./FormCategoria";
 import { ehDoSistema, useApagarCategoria, useCategoriasTodas } from "./useCategorias";
 
@@ -27,7 +26,6 @@ const GRUPOS: { tipo: TipoTransacao; titulo: string; ponto: string }[] = [
 
 export function PaginaCategorias() {
   useTitulo("Categorias");
-  const { ehAdmin } = useAuth();
   const categorias = useCategoriasTodas();
   const apagar = useApagarCategoria();
   const [editando, setEditando] = useState<Categoria | null>(null);
@@ -53,7 +51,7 @@ export function PaginaCategorias() {
       />
 
       <div className="flex flex-wrap items-start gap-5">
-        {ehAdmin && (
+        {(
           <CardLateral aria-labelledby="titulo-nova-categoria" className="flex min-w-0 flex-[1_1_300px] flex-col gap-5 p-6">
             <h2 id="titulo-nova-categoria" className="rotulo">
               Nova categoria
@@ -110,7 +108,7 @@ export function PaginaCategorias() {
                                 </Badge>
                               )}
                             </span>
-                            {ehAdmin && !sistema && (
+                            {!sistema && (
                               <span className="flex flex-none gap-1">
                                 <Button
                                   tamanho="icone"

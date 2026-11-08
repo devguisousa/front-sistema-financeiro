@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Usuario } from "../../lib/tipos";
 import { chamadasDe, type RotasMock } from "../../test/fetch";
-import { ADMIN, conta, listagem, saldo, USUARIO } from "../../test/dados";
+import { ADMIN, conta, listagem, saldo } from "../../test/dados";
 import { renderApp } from "../../test/render";
 
 function abrir(usuario: Usuario = ADMIN, extra: RotasMock = {}) {
@@ -29,14 +29,6 @@ describe("contas", () => {
     const consolidado = await screen.findByRole("region", { name: "Saldo consolidado" });
     expect(await within(consolidado).findByText("R$ 0,30")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Banco" })).toBeInTheDocument();
-  });
-
-  it("USUARIO não vê Nova conta nem Editar", async () => {
-    abrir(USUARIO);
-
-    expect(await screen.findByRole("region", { name: "Banco" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /nova conta/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^editar/i })).not.toBeInTheDocument();
   });
 
   it("saldo inicial 0 é aceito", async () => {

@@ -11,7 +11,6 @@ import {
   contaReceber,
   listagem,
   saldo,
-  USUARIO,
 } from "../../test/dados";
 import { renderApp } from "../../test/render";
 
@@ -49,14 +48,6 @@ describe("contas a pagar e a receber", () => {
     const urls = chamadasDe(fetch, "GET /contaReceber").map(([url]) => String(url));
     expect(urls).toContain("/api/contaReceber?pagina=1&limite=20");
     expect(document.title).toBe("Contas a receber — Fluxo");
-  });
-
-  it("USUARIO registra pagamento mas não edita nem cadastra", async () => {
-    abrirPagar(USUARIO);
-
-    expect(await screen.findByRole("button", { name: /registrar pagamento/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^editar/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /nova conta a pagar/i })).not.toBeInTheDocument();
   });
 
   it("valor da baixa começa com o que falta e envia normalizado", async () => {

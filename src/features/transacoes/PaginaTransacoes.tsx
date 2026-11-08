@@ -29,7 +29,6 @@ import { formatarValor } from "../../lib/dinheiro";
 import { mensagemDoErro } from "../../lib/erros";
 import { useTitulo } from "../../lib/titulo";
 import type { TipoTransacao, Transacao } from "../../lib/tipos";
-import { useAuth } from "../../lib/useAuth";
 import { useCategoriasTodas } from "../categorias/useCategorias";
 import { useContasTodas } from "../contas/useContas";
 import { FormTransacao } from "./FormTransacao";
@@ -41,7 +40,6 @@ const numeroOuNada = (texto: string | null) => (texto && /^\d+$/.test(texto) ? N
 
 export function PaginaTransacoes() {
   useTitulo("Transações");
-  const { ehAdmin } = useAuth();
   const [params, setParams] = useSearchParams();
 
   const tipoUrl = params.get("tipo");
@@ -208,7 +206,7 @@ export function PaginaTransacoes() {
                           {formatarValor(t.valor)}
                         </Td>
                         <Td className="w-[96px] py-2">
-                          {ehAdmin && ehManual(t) && (
+                          {ehManual(t) && (
                             <span className="flex justify-end gap-1">
                               <Button
                                 tamanho="icone"

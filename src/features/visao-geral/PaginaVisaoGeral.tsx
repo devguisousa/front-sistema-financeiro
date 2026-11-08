@@ -13,7 +13,6 @@ import { cn } from "../../lib/cn";
 import { formatarDataCurta, formatarVencimento } from "../../lib/datas";
 import { formatarBRL, formatarValor, paraCentavos } from "../../lib/dinheiro";
 import { useTitulo } from "../../lib/titulo";
-import { useAuth } from "../../lib/useAuth";
 import { variacao } from "./calculos";
 import { GraficoFluxo } from "./GraficoFluxo";
 import { usePainel } from "./usePainel";
@@ -135,7 +134,6 @@ function CartaoMes({
 
 export function PaginaVisaoGeral() {
   useTitulo("Visão geral");
-  const { ehAdmin } = useAuth();
   const painel = usePainel();
   const { contas, saldos, saldoTotal, janela, meses, vencimentos, ultimas, agora } = painel;
 
@@ -165,13 +163,9 @@ export function PaginaVisaoGeral() {
           <Empty
             icone={WalletCards}
             titulo="Cadastre sua primeira conta"
-            texto={
-              ehAdmin
-                ? "Contas são onde o dinheiro fica: banco, carteira, reserva. Os saldos e o fluxo aparecem aqui depois."
-                : "Peça a um administrador para cadastrar as contas da empresa."
-            }
+            texto="Contas são onde o dinheiro fica: banco, carteira, reserva. Os saldos e o fluxo aparecem aqui depois."
             acao={
-              ehAdmin && (
+              (
                 <Link
                   to="/contas"
                   className="inline-flex min-h-10 items-center gap-2 rounded-full bg-verde px-4 font-semibold text-tinta transition hover:bg-verde-claro active:scale-[.97]"

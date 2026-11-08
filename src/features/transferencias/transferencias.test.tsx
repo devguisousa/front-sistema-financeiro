@@ -65,13 +65,4 @@ describe("transferências", () => {
     expect(await screen.findByText("Saldo insuficiente nesta conta.")).toBeInTheDocument();
   });
 
-  it("USUARIO não vê Estornar; ADMIN vê", async () => {
-    const { unmount } = abrir(USUARIO);
-    expect(await screen.findByText("Reserva mensal")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /estornar/i })).not.toBeInTheDocument();
-    unmount();
-
-    abrir(ADMIN);
-    expect(await screen.findByRole("button", { name: /estornar reserva mensal/i })).toBeInTheDocument();
-  });
 });

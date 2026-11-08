@@ -10,7 +10,6 @@ import {
   listagem,
   saldo,
   transacao,
-  USUARIO,
 } from "../../test/dados";
 import { renderApp } from "../../test/render";
 
@@ -53,14 +52,6 @@ describe("transações", () => {
       transacao({ id: 1, descricao: "Venda" }),
       transacao({ id: 2, descricao: "Pagamento aluguel", tipo: "DESPESA", pagamentoContaPagarId: 1 }),
     ]);
-
-  it("USUARIO não vê editar nem apagar", async () => {
-    abrir(USUARIO, { "GET /transacao": linhas });
-
-    expect(await screen.findByText("Pagamento aluguel")).toBeInTheDocument();
-    expect(screen.queryAllByRole("button", { name: /^editar/i })).toHaveLength(0);
-    expect(screen.queryAllByRole("button", { name: /^apagar/i })).toHaveLength(0);
-  });
 
   it("ADMIN vê editar e apagar só no lançamento manual", async () => {
     abrir(ADMIN, { "GET /transacao": linhas });

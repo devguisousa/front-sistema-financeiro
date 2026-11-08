@@ -25,14 +25,12 @@ import { formatarValor } from "../../lib/dinheiro";
 import { mensagemDoErro } from "../../lib/erros";
 import { useTitulo } from "../../lib/titulo";
 import type { Transferencia } from "../../lib/tipos";
-import { useAuth } from "../../lib/useAuth";
 import { useContasTodas } from "../contas/useContas";
 import { FormTransferencia } from "./FormTransferencia";
 import { useEstornar, useListaTransferencias } from "./useTransferencias";
 
 export function PaginaTransferencias() {
   useTitulo("Transferências");
-  const { ehAdmin } = useAuth();
   const [params, setParams] = useSearchParams();
   const page = Number(params.get("pagina")) || 1;
 
@@ -130,7 +128,7 @@ export function PaginaTransferencias() {
                         {formatarValor(t.valor)}
                       </Td>
                       <Td className="w-[120px] py-2 text-right">
-                        {ehAdmin && (
+                        {(
                           <Button
                             tamanho="sm"
                             variante="fantasma"

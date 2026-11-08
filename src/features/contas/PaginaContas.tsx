@@ -15,7 +15,6 @@ import { formatarBRL, formatarValor, paraCentavos } from "../../lib/dinheiro";
 import { mensagemDoErro } from "../../lib/erros";
 import { useTitulo } from "../../lib/titulo";
 import type { Conta, Saldo } from "../../lib/tipos";
-import { useAuth } from "../../lib/useAuth";
 import { FormConta } from "./FormConta";
 import { useApagarConta, useContasTodas, useSaldos } from "./useContas";
 
@@ -35,13 +34,11 @@ function Linha({ rotulo, valor, destaque }: { rotulo: string; valor: string; des
 function CartaoConta({
   conta,
   saldo,
-  ehAdmin,
   aoEditar,
   aoExcluir,
 }: {
   conta: Conta;
   saldo: Saldo | undefined;
-  ehAdmin: boolean;
   aoEditar(): void;
   aoExcluir(): void;
 }) {
@@ -57,7 +54,7 @@ function CartaoConta({
             {conta.nome}
           </h2>
         </div>
-        {ehAdmin && (
+        {(
           <div className="flex flex-none gap-1">
             <Button tamanho="icone" variante="fantasma" aria-label={`Editar ${conta.nome}`} onClick={aoEditar}>
               <Pencil size={15} aria-hidden="true" />
@@ -91,7 +88,6 @@ function CartaoConta({
 
 export function PaginaContas() {
   useTitulo("Contas");
-  const { ehAdmin } = useAuth();
   const contas = useContasTodas();
   const saldos = useSaldos(contas.data);
   const apagar = useApagarConta();
@@ -116,7 +112,7 @@ export function PaginaContas() {
   }
 
   const novaConta = (texto: string) =>
-    ehAdmin && (
+    (
       <Button variante="primario" onClick={() => setFormulario({})}>
         <Plus size={16} aria-hidden="true" />
         {texto}
@@ -181,7 +177,6 @@ export function PaginaContas() {
                     key={c.id}
                     conta={c}
                     saldo={saldos.data?.[c.id]}
-                    ehAdmin={ehAdmin}
                     aoEditar={() => setFormulario({ conta: c })}
                     aoExcluir={() => setParaExcluir(c)}
                   />

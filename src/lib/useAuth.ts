@@ -9,6 +9,8 @@ export type ContextoAuth = {
   saidaManual: boolean;
   entrar(email: string, senha: string): Promise<void>;
   criarPrimeiroAdmin(email: string, senha: string): Promise<void>;
+  /** Cadastro aberto: cria um USUARIO com dados próprios e já entra. */
+  cadastrar(email: string, senha: string): Promise<void>;
   /** Logout normal: avisa a API e limpa tudo. */
   sair(): Promise<void>;
   /** Limpa a sessão só no navegador (a API já encerrou: troca de senha, sair de todos). */

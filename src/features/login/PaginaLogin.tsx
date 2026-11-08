@@ -9,6 +9,8 @@ import { useTitulo } from "../../lib/titulo";
 import { useAuth } from "../../lib/useAuth";
 import { Logo } from "../../layouts/Logo";
 import { TelaCarregando } from "../../layouts/RotaProtegida";
+import { useState } from "react";
+import { FormCadastro } from "./FormCadastro";
 import { FormLogin } from "./FormLogin";
 import { FormPrimeiroAdmin } from "./FormPrimeiroAdmin";
 import { LetreiroMarca } from "./LetreiroMarca";
@@ -16,6 +18,7 @@ import { LetreiroMarca } from "./LetreiroMarca";
 type EstadoDaRota = { de?: { pathname?: string } } | null;
 
 function Formulario() {
+  const [criando, setCriando] = useState(false);
   const status = useQuery({
     queryKey: chaves.statusAuth,
     queryFn: () => requisicao<{ precisaAdmin: boolean }>("/auth/status", { publica: true }),
@@ -48,7 +51,9 @@ function Formulario() {
     );
   }
 
-  return status.data.precisaAdmin ? <FormPrimeiroAdmin /> : <FormLogin />;
+  if (status.data.precisaAdmin) return <FormPrimeiroAdmin />;
+  if (criando) return <FormCadastro aoVoltar={() => setCriando(false)} />;
+  return <FormLogin aoCriarConta={() => setCriando(true)} />;
 }
 
 export function PaginaLogin() {
