@@ -55,7 +55,7 @@ export function PaginaTransferencias() {
   return (
     <>
       <PageHeader
-        kicker="03 — Movimentações"
+        kicker="04 — Movimentações"
         titulo="Transferências"
         descricao="Dinheiro que muda de conta, sem virar receita nem despesa de verdade. Cada transferência cria duas transações: uma saída na origem e uma entrada no destino."
       />

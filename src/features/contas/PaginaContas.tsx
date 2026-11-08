@@ -137,7 +137,7 @@ export function PaginaContas() {
   return (
     <>
       <PageHeader
-        kicker="06 — Cadastros"
+        kicker="07 — Cadastros"
         titulo="Contas"
         descricao="Onde o dinheiro mora. Nenhuma conta fica negativa — o sistema barra qualquer saída maior que o saldo."
         acoes={novaConta("Nova conta")}

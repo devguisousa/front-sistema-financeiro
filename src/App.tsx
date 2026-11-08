@@ -21,6 +21,12 @@ export const rotas: RouteObject[] = [
             }),
           },
           {
+            path: "relatorio",
+            lazy: async () => ({
+              Component: (await import("./features/relatorio/PaginaRelatorio")).PaginaRelatorio,
+            }),
+          },
+          {
             path: "transacoes",
             lazy: async () => ({
               Component: (await import("./features/transacoes/PaginaTransacoes")).PaginaTransacoes,

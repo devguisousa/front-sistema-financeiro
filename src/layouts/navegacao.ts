@@ -3,6 +3,7 @@ import {
   ArrowDownUp,
   ArrowLeftRight,
   ArrowUpRight,
+  ChartPie,
   LayoutGrid,
   type LucideIcon,
   SlidersHorizontal,
@@ -14,7 +15,13 @@ export type ItemNav = { rotulo: string; caminho: string; icone: LucideIcon };
 
 // Mesma ordem e grupos da sidebar dos mockups
 export const GRUPOS_NAV: { titulo: string; itens: ItemNav[] }[] = [
-  { titulo: "Geral", itens: [{ rotulo: "Visão geral", caminho: "/", icone: LayoutGrid }] },
+  {
+    titulo: "Geral",
+    itens: [
+      { rotulo: "Visão geral", caminho: "/", icone: LayoutGrid },
+      { rotulo: "Relatório", caminho: "/relatorio", icone: ChartPie },
+    ],
+  },
   {
     titulo: "Movimentações",
     itens: [

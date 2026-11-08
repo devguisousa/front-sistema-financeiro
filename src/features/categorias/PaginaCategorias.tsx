@@ -45,7 +45,7 @@ export function PaginaCategorias() {
   return (
     <>
       <PageHeader
-        kicker="07 — Cadastros"
+        kicker="08 — Cadastros"
         titulo="Categorias"
         descricao="Toda categoria tem um tipo. Uma receita só aceita categoria de receita — e uma despesa, de despesa."
       />

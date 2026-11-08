@@ -87,7 +87,7 @@ export function PaginaTransacoes() {
   return (
     <>
       <PageHeader
-        kicker="02 — Movimentações"
+        kicker="03 — Movimentações"
         titulo="Transações"
         descricao="Toda entrada e saída, conta por conta. A categoria sempre combina com o tipo do lançamento."
       />

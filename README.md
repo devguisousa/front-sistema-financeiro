@@ -77,10 +77,13 @@ src/
   `localStorage` (a API o devolve no corpo). A renovação roda uma vez por vez,
   inclusive entre abas (`navigator.locks`), porque reutilizar um refresh antigo
   derruba todas as sessões. Sair numa aba sai em todas.
-- **Visão geral:** a API não tem rota de resumo; o painel junta as transações dos
-  últimos 6 meses página a página (até 10 páginas de 100). Se passar disso, o
-  gráfico mostra "Dados parciais". Transferências não contam como receita nem
-  despesa.
+- **Visão geral:** o painel junta as transações dos últimos 6 meses página a
+  página (até 10 páginas de 100). Se passar disso, o gráfico mostra "Dados
+  parciais". Transferências não contam como receita nem despesa.
+- **Relatório:** receitas e despesas do período escolhido (atalhos ou datas De/Até),
+  com totais por categoria e a lista de lançamentos. Os totais vêm da API
+  (`GET /transacao/resumo`); o período fica na URL (`?de=AAAA-MM-DD&ate=AAAA-MM-DD`)
+  e vai para a API como começo e fim do dia no fuso de quem usa.
 
 ## Produção
 

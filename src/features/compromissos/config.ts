@@ -66,7 +66,7 @@ const STATUS_RECEBER = { pendente: "PENDENTE", parcial: "PARCIALMENTE_RECEBIDA",
 
 export const configPagar: ConfigCompromisso = {
   tela: "Contas a pagar",
-  kicker: "04 — Compromissos",
+  kicker: "05 — Compromissos",
   descricao: "Pague de uma vez ou em partes. O status se atualiza sozinho a cada pagamento.",
   recurso: "/contaPagar",
   chaveLista: "contaPagar",
@@ -114,7 +114,7 @@ export const configPagar: ConfigCompromisso = {
 
 export const configReceber: ConfigCompromisso = {
   tela: "Contas a receber",
-  kicker: "05 — Compromissos",
+  kicker: "06 — Compromissos",
   descricao: "Receba de uma vez ou em partes. O status se atualiza sozinho a cada recebimento.",
   recurso: "/contaReceber",
   chaveLista: "contaReceber",

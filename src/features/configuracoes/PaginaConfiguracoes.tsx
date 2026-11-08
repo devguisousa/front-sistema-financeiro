@@ -33,7 +33,7 @@ export function PaginaConfiguracoes() {
 
   return (
     <>
-      <PageHeader kicker="08 — Sistema" titulo="Configurações" descricao="Sua conta, suas sessões e quem mais tem acesso." />
+      <PageHeader kicker="09 — Sistema" titulo="Configurações" descricao="Sua conta, suas sessões e quem mais tem acesso." />
 
       <div className="grid gap-5 xl:grid-cols-[1.4fr_1fr]">
         <Card aria-labelledby="titulo-minha-conta" className="flex min-w-0 flex-col gap-6 p-6">

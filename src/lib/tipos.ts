@@ -60,6 +60,26 @@ export type Transacao = {
   categoria: { id: number; nome: string; tipo: TipoTransacao };
 };
 
+/** GET /transacao/resumo: totais do período (transferências ficam de fora). */
+export type ResumoCategoria = {
+  categoriaId: number;
+  nome: string;
+  tipo: TipoTransacao;
+  total: string;
+  quantidade: number;
+};
+
+export type ResumoPeriodo = {
+  inicio: string;
+  fim: string;
+  receitas: string;
+  despesas: string;
+  resultado: string;
+  qtdReceitas: number;
+  qtdDespesas: number;
+  porCategoria: ResumoCategoria[];
+};
+
 export type Transferencia = {
   id: number;
   valor: string;
