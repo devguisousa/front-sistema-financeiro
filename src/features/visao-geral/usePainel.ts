@@ -1,16 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { buscarTodas, normalizarPagina, requisicao } from "../../lib/api";
 import { paraCentavos } from "../../lib/dinheiro";
 import { chaves } from "../../lib/queryClient";
 import type { ContaPagar, ContaReceber, Transacao } from "../../lib/tipos";
 import { useContasTodas, useSaldos } from "../contas/useContas";
-import {
-  buscarTransacoesDaJanela,
-  inicioDaJanela,
-  proximosVencimentos,
-  resumirMeses,
-} from "./calculos";
+import type { Periodo } from "../relatorio/periodos";
+import { buscarTransacoesDoPeriodo, proximosVencimentos } from "./calculos";
 
 async function buscarVencimentos() {
   // Só o que ainda não foi quitado
@@ -31,15 +27,9 @@ async function buscarVencimentos() {
 /** Dados da visão geral, bloco a bloco (cada um com seu carregando/erro). */
 export function usePainel() {
   const [agora] = useState(() => new Date());
-  const inicio = inicioDaJanela(agora);
 
   const contas = useContasTodas();
   const saldos = useSaldos(contas.data);
-
-  const janela = useQuery({
-    queryKey: [...chaves.painel, "janela", inicio.toISOString()],
-    queryFn: () => buscarTransacoesDaJanela(inicio),
-  });
 
   const vencimentos = useQuery({
     queryKey: [...chaves.painel, "vencimentos"],
@@ -55,10 +45,18 @@ export function usePainel() {
       ).itens,
   });
 
-  const meses = janela.data ? resumirMeses(janela.data.itens, agora) : undefined;
   const saldoTotal = saldos.data
     ? Object.values(saldos.data).reduce((soma, s) => soma + paraCentavos(s.saldoAtual), 0)
     : undefined;
 
-  return { agora, contas, saldos, saldoTotal, janela, meses, vencimentos, ultimas };
+  return { agora, contas, saldos, saldoTotal, vencimentos, ultimas };
+}
+
+/** Transações do período, para os gráficos de fluxo e de resultado acumulado. */
+export function useTransacoesDoPeriodo(periodo: Periodo) {
+  return useQuery({
+    queryKey: [...chaves.painel, "periodo", periodo],
+    queryFn: () => buscarTransacoesDoPeriodo(periodo),
+    placeholderData: keepPreviousData,
+  });
 }

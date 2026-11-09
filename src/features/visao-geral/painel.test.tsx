@@ -143,9 +143,133 @@ describe("visão geral", () => {
     expect(screen.getByRole("button", { name: "Mês passado" })).toHaveAttribute("aria-pressed", "true");
     expect(inicioDe(fetch)).toContain(limitesParaApi({ de: "2026-09-01", ate: "2026-09-30" }).inicio);
 
-    // O resto da página não depende do período
+    // Saldo total não depende do período
     expect(screen.getByRole("region", { name: "Saldo total" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Fluxo de caixa" })).toBeInTheDocument();
+  });
+
+  it("gráfico do fluxo e a tabela dele seguem o período", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-07T15:00:00.000Z"));
+
+    const doPeriodo = [
+      transacao({ id: 1, valor: "250.00", data: "2026-11-03T15:00:00.000Z" }),
+      transacao({ id: 2, tipo: "DESPESA", valor: "80.00", data: "2026-11-05T15:00:00.000Z" }),
+    ];
+    const { fetch } = renderApp({
+      rota: "/",
+      usuario: ADMIN,
+      api: {
+        ...vazio,
+        ...umaConta,
+        "GET /transacao": ({ query }) => listagem("transacao", query.has("inicio") ? doPeriodo : []),
+      },
+    });
+
+    const fluxo = await screen.findByRole("region", { name: "Fluxo de caixa" });
+    expect(await within(fluxo).findByText("Por dia")).toBeInTheDocument();
+    expect(within(fluxo).getByRole("columnheader", { name: "Dia" })).toBeInTheDocument();
+    const dia3 = await within(fluxo).findByRole("row", { name: /03\/11\/2026/ });
+    expect(within(dia3).getAllByText(/R\$\s250,00/)).toHaveLength(2); // receitas e resultado
+    expect(within(fluxo).getAllByRole("row")).toHaveLength(31); // cabeçalho + 30 dias
+
+    // Barras ou linhas
+    const linhas = within(fluxo).getByRole("button", { name: "Linhas" });
+    await userEvent.click(linhas);
+    expect(linhas).toHaveAttribute("aria-pressed", "true");
+
+    await userEvent.click(screen.getByRole("button", { name: "Este ano" }));
+
+    expect(await within(fluxo).findByText("Por mês")).toBeInTheDocument();
+    expect(within(fluxo).getByRole("columnheader", { name: "Mês" })).toBeInTheDocument();
+    const novembro = within(fluxo).getByRole("row", { name: /Novembro de 2026/ });
+    expect(within(novembro).getByText(/R\$\s80,00/)).toBeInTheDocument();
+    expect(within(novembro).getByText(/R\$\s170,00/)).toBeInTheDocument();
+
+    const pedidos = chamadasDe(fetch, "GET /transacao").map(
+      ([url]) => new URL(String(url), "http://localhost").searchParams,
+    );
+    expect(pedidos.map((q) => q.get("inicio"))).toContain(limitesParaApi(periodoDoAtalho("este-ano")).inicio);
+    expect(pedidos.filter((q) => q.has("inicio")).every((q) => q.get("limit") === "100")).toBe(true);
+  });
+
+  it("resultado acumulado do período soma dia a dia até hoje", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-07T15:00:00.000Z"));
+
+    renderApp({
+      rota: "/",
+      usuario: ADMIN,
+      api: {
+        ...vazio,
+        ...umaConta,
+        "GET /transacao": ({ query }) =>
+          listagem(
+            "transacao",
+            query.has("inicio")
+              ? [
+                  transacao({ id: 1, valor: "250.00", data: "2026-11-03T15:00:00.000Z" }),
+                  transacao({ id: 2, tipo: "DESPESA", valor: "300.00", data: "2026-11-05T15:00:00.000Z" }),
+                ]
+              : [],
+          ),
+      },
+    });
+
+    const acumulado = await screen.findByRole("region", { name: "Resultado acumulado" });
+    expect(await within(acumulado).findByText("até 07/11/2026")).toBeInTheDocument();
+    // Só os dias com movimento na tabela
+    expect(within(acumulado).getAllByRole("row")).toHaveLength(3);
+    const dia5 = within(acumulado).getByRole("row", { name: /05\/11\/2026/ });
+    expect(within(dia5).getByText(/-R\$\s300,00/)).toBeInTheDocument();
+    expect(within(dia5).getByText(/-R\$\s50,00/)).toBeInTheDocument();
+  });
+
+  it("por categoria: despesas ou receitas, em barras ou rosca", async () => {
+    const categoria = (categoriaId: number, nome: string, tipo: "RECEITA" | "DESPESA", total: string) => ({
+      categoriaId,
+      nome,
+      tipo,
+      total,
+      quantidade: 1,
+    });
+
+    renderApp({
+      rota: "/",
+      usuario: ADMIN,
+      api: {
+        ...vazio,
+        ...umaConta,
+        "GET /transacao/resumo": () => ({
+          status: 200,
+          corpo: resumo({
+            porCategoria: [
+              categoria(1, "Mercado", "DESPESA", "300.00"),
+              categoria(2, "Aluguel", "DESPESA", "900.00"),
+              categoria(3, "Salário", "RECEITA", "1000.00"),
+            ],
+          }),
+        }),
+      },
+    });
+
+    const bloco = await screen.findByRole("region", { name: "Por categoria" });
+    const itens = await within(bloco).findAllByRole("listitem");
+    expect(itens.map((li) => li.textContent)).toEqual([
+      expect.stringMatching(/Aluguel.*75%/),
+      expect.stringMatching(/Mercado.*25%/),
+    ]);
+    expect(within(bloco).queryByText("Salário")).not.toBeInTheDocument();
+
+    await userEvent.click(within(bloco).getByRole("button", { name: "Receitas" }));
+    expect(within(bloco).getByText("Salário")).toBeInTheDocument();
+    expect(within(bloco).queryByText("Aluguel")).not.toBeInTheDocument();
+
+    await userEvent.click(within(bloco).getByRole("button", { name: "Rosca" }));
+    expect(within(bloco).getByRole("button", { name: "Rosca" })).toHaveAttribute("aria-pressed", "true");
+    // A legenda da rosca traz nome, parte e valor
+    expect(within(bloco).getByText("Salário")).toBeInTheDocument();
+    expect(within(bloco).getByText("100%")).toBeInTheDocument();
+    expect(within(bloco).getAllByText(/R\$\s1\.000,00/).length).toBeGreaterThan(0);
   });
 
   it("datas livres: cartões sem nome de mês e comparação com os dias logo antes", async () => {
@@ -181,6 +305,7 @@ describe("visão geral", () => {
       },
     });
 
-    expect(await screen.findByRole("button", { name: /tentar de novo/i })).toBeInTheDocument();
+    // Cartões do período e gráfico por categoria usam o mesmo resumo
+    expect(await screen.findAllByRole("button", { name: /tentar de novo/i })).toHaveLength(2);
   });
 });

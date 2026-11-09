@@ -1,5 +1,5 @@
 import { ArrowRight, WalletCards } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
   Badge,
@@ -7,20 +7,28 @@ import {
   Card,
   Empty,
   ErroCarregar,
+  Segmentado,
   Skeleton,
 } from "../../components/ui";
 import { cn } from "../../lib/cn";
-import { formatarDataCurta, formatarVencimento } from "../../lib/datas";
+import { formatarDataCurta, formatarVencimento, hojeLocal } from "../../lib/datas";
 import { formatarBRL, formatarValor, paraCentavos } from "../../lib/dinheiro";
 import { useTitulo } from "../../lib/titulo";
 import { FiltroPeriodo } from "../relatorio/FiltroPeriodo";
 import { type Periodo, periodoAnterior, periodoDaUrl, rotuloDoPeriodo } from "../relatorio/periodos";
 import { useResumo } from "../relatorio/useRelatorio";
-import { variacao } from "./calculos";
-import { GraficoFluxo } from "./GraficoFluxo";
-import { usePainel } from "./usePainel";
+import { acumularPorDia, agruparFluxo, granularidade, variacao } from "./calculos";
+import { GraficoAcumulado } from "./GraficoAcumulado";
+import { GraficoCategorias } from "./GraficoCategorias";
+import { type FormaFluxo, GraficoFluxo } from "./GraficoFluxo";
+import { usePainel, useTransacoesDoPeriodo } from "./usePainel";
 
 const mesPorExtenso = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
+
+const FORMAS_FLUXO: { valor: FormaFluxo; rotulo: string }[] = [
+  { valor: "barras", rotulo: "Barras" },
+  { valor: "linhas", rotulo: "Linhas" },
+];
 
 const lancamentos = (n: number, de: string) => `${n} ${n === 1 ? "lançamento" : "lançamentos"} de ${de}`;
 
@@ -138,14 +146,17 @@ function CartaoMes({
 export function PaginaVisaoGeral() {
   useTitulo("Visão geral");
   const painel = usePainel();
-  const { contas, saldos, saldoTotal, janela, meses, vencimentos, ultimas, agora } = painel;
+  const { contas, saldos, saldoTotal, vencimentos, ultimas, agora } = painel;
 
-  // O período (?de=&ate=) só muda os cartões de receitas, despesas e resultado
+  // O período (?de=&ate=) muda os cartões de receitas, despesas e resultado e
+  // os gráficos. Saldos, vencimentos e últimas transações não dependem dele
   const [params, setParams] = useSearchParams();
   const periodo = periodoDaUrl(params, agora);
   const base = periodoAnterior(periodo);
   const resumo = useResumo(periodo);
   const resumoBase = useResumo(base);
+  const doPeriodo = useTransacoesDoPeriodo(periodo);
+  const [formaFluxo, setFormaFluxo] = useState<FormaFluxo>("barras");
 
   const qtdContas = contas.data?.length;
 
@@ -192,7 +203,7 @@ export function PaginaVisaoGeral() {
   const totalPorConta = Math.max(saldoTotal ?? 0, 1);
 
   const rotulo = rotuloDoPeriodo(periodo);
-  const doPeriodo = (nome: string) => (rotulo ? `${nome} · ${rotulo}` : nome);
+  const comRotulo = (nome: string) => (rotulo ? `${nome} · ${rotulo}` : nome);
   const nomeBase = rotuloDoPeriodo(base) ?? "período anterior";
 
   const totais = (dados: typeof resumo.data) =>
@@ -218,7 +229,7 @@ export function PaginaVisaoGeral() {
         periodo={periodo}
         agora={agora}
         aoMudar={escolher}
-        descricao="Vale para receitas, despesas e resultado. Saldo, fluxo e vencimentos não mudam."
+        descricao="Vale para os cartões de receitas, despesas e resultado e para os gráficos. Saldos, vencimentos e últimas transações não mudam."
       />
 
       <div className="grid gap-5 lg:grid-cols-[1.1fr_2fr]">
@@ -259,7 +270,7 @@ export function PaginaVisaoGeral() {
             )}
           >
             <CartaoMes
-              rotulo={doPeriodo("Receitas")}
+              rotulo={comRotulo("Receitas")}
               valor={atual?.receitas}
               cor="text-verde"
               detalhe={lancamentos(resumo.data?.qtdReceitas ?? 0, "entrada")}
@@ -270,7 +281,7 @@ export function PaginaVisaoGeral() {
               }
             />
             <CartaoMes
-              rotulo={doPeriodo("Despesas")}
+              rotulo={comRotulo("Despesas")}
               valor={atual?.despesas}
               cor="text-coral"
               detalhe={lancamentos(resumo.data?.qtdDespesas ?? 0, "saída")}
@@ -286,7 +297,7 @@ export function PaginaVisaoGeral() {
               }
             />
             <CartaoMes
-              rotulo={doPeriodo("Resultado")}
+              rotulo={comRotulo("Resultado")}
               valor={atual?.resultado}
               detalhe="Receitas menos despesas"
               chip={
@@ -300,12 +311,29 @@ export function PaginaVisaoGeral() {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[2fr_1fr]">
-        <Bloco id="titulo-fluxo" titulo="Fluxo de caixa">
-          <div className="px-5 pb-5">
-            {janela.isError ? (
-              <ErroCarregar erro={janela.error} aoTentar={() => void janela.refetch()} />
-            ) : meses ? (
-              <GraficoFluxo meses={meses} parcial={janela.data?.parcial ?? false} />
+        <Bloco
+          id="titulo-fluxo"
+          titulo="Fluxo de caixa"
+          acao={
+            <Segmentado<FormaFluxo>
+              rotulo="Forma do gráfico de fluxo"
+              valor={formaFluxo}
+              aoMudar={setFormaFluxo}
+              opcoes={FORMAS_FLUXO}
+            />
+          }
+        >
+          <div className={cn("px-5 pb-5 transition-opacity", doPeriodo.isPlaceholderData && "opacity-60")}>
+            {doPeriodo.isError ? (
+              <ErroCarregar erro={doPeriodo.error} aoTentar={() => void doPeriodo.refetch()} />
+            ) : doPeriodo.data ? (
+              <GraficoFluxo
+                baldes={agruparFluxo(doPeriodo.data.itens, periodo)}
+                granularidade={granularidade(periodo)}
+                parcial={doPeriodo.data.parcial}
+                forma={formaFluxo}
+                hoje={hojeLocal(agora)}
+              />
             ) : (
               <Skeleton className="h-[240px] w-full" />
             )}
@@ -338,6 +366,35 @@ export function PaginaVisaoGeral() {
               })}
             </ul>
           )}
+        </Bloco>
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-2">
+        <Bloco id="titulo-acumulado" titulo="Resultado acumulado">
+          <div className={cn("px-5 pb-5 transition-opacity", doPeriodo.isPlaceholderData && "opacity-60")}>
+            {doPeriodo.isError ? (
+              <ErroCarregar erro={doPeriodo.error} aoTentar={() => void doPeriodo.refetch()} />
+            ) : doPeriodo.data ? (
+              <GraficoAcumulado
+                pontos={acumularPorDia(doPeriodo.data.itens, periodo, hojeLocal(agora))}
+                parcial={doPeriodo.data.parcial}
+              />
+            ) : (
+              <Skeleton className="h-[200px] w-full" />
+            )}
+          </div>
+        </Bloco>
+
+        <Bloco id="titulo-categorias" titulo="Por categoria">
+          <div className={cn("px-5 pb-5 transition-opacity", resumo.isPlaceholderData && "opacity-60")}>
+            {resumo.isError ? (
+              <ErroCarregar erro={resumo.error} aoTentar={() => void resumo.refetch()} />
+            ) : resumo.data ? (
+              <GraficoCategorias categorias={resumo.data.porCategoria} />
+            ) : (
+              <ListaCarregando linhas={3} />
+            )}
+          </div>
         </Bloco>
       </div>
 

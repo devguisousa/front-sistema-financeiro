@@ -1,90 +1,142 @@
-import { Bar, BarChart, CartesianGrid, Tooltip, type TooltipContentProps, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  Tooltip,
+  type TooltipContentProps,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { Badge } from "../../components/ui";
 import { formatarBRL } from "../../lib/dinheiro";
-import type { ResumoMes } from "./calculos";
+import { type Balde, cortarFuturo, type Granularidade, type PontoFluxo } from "./calculos";
+import { COR, EIXO_ZERO, GRADE, reaisCurtos, SUPERFICIE, TICK } from "./estiloGrafico";
+import { Amostra, CaixaDica, LinhaDica } from "./PecasGrafico";
 
-// Cores da marca (verde = entrada, coral = saída). Validadas com o script da
-// skill dataviz: CVD ΔE 9,4, contraste ≥ 3:1 sobre #0C110E. Identidade também
-// vem da legenda, da ordem fixa (receita à esquerda) e da tabela.
-const COR = { receitas: "#3DF58F", despesas: "#FF8B66" } as const;
-const TICK = { fill: "#76827A", fontSize: 11, fontFamily: "Geist Mono Variable, monospace" };
+export type FormaFluxo = "barras" | "linhas";
 
-const compacto = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
+const SERIES = ["receitas", "despesas"] as const;
+const NOME = { receitas: "Receitas", despesas: "Despesas" } as const;
+
+const POR: Record<Granularidade, { legenda: string; coluna: string }> = {
+  dia: { legenda: "Por dia", coluna: "Dia" },
+  semana: { legenda: "Por semana", coluna: "Semana" },
+  mes: { legenda: "Por mês", coluna: "Mês" },
+};
 
 function Dica({ active, payload }: TooltipContentProps) {
-  const linha = payload?.[0]?.payload as (ResumoMes & { nome: string }) | undefined;
-  if (!active || !linha) return null;
-  const resultado = linha.receitas - linha.despesas;
+  const balde = payload?.[0]?.payload as PontoFluxo | undefined;
+  // Sem valor = ainda não chegou (só no gráfico de linhas)
+  if (!active || !balde || balde.receitas === null || balde.despesas === null) return null;
+  const { receitas, despesas } = balde;
 
   return (
-    <div className="flex min-w-48 flex-col gap-2 rounded-xl border border-linha-3 bg-noite-2 p-3 text-[12px] shadow-[0_16px_40px_-12px_#000]">
-      <span className="rotulo">{linha.nome}</span>
-      {(["receitas", "despesas"] as const).map((serie) => (
-        <span key={serie} className="flex items-center justify-between gap-4">
-          <span className="flex items-center gap-2 text-musgo">
-            <span className="size-2 rounded-[2px]" style={{ background: COR[serie] }} aria-hidden="true" />
-            {serie === "receitas" ? "Receitas" : "Despesas"}
-          </span>
-          <span className="num font-mono text-nevoa">{formatarBRL(linha[serie])}</span>
-        </span>
+    <CaixaDica titulo={balde.nome}>
+      {SERIES.map((serie) => (
+        <LinhaDica
+          key={serie}
+          cor={COR[serie]}
+          nome={NOME[serie]}
+          valor={formatarBRL(serie === "receitas" ? receitas : despesas)}
+        />
       ))}
-      <span className="flex items-center justify-between gap-4 border-t border-linha pt-2">
-        <span className="text-musgo">Resultado</span>
-        <span className="num font-mono text-nevoa">{formatarBRL(resultado)}</span>
-      </span>
-    </div>
+      <LinhaDica separada nome="Resultado" valor={formatarBRL(receitas - despesas)} />
+    </CaixaDica>
   );
 }
 
-const nomeCompleto = (mes: string) => {
-  const [ano, m] = mes.split("-").map(Number);
-  const texto = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(
-    new Date(ano ?? 0, (m ?? 1) - 1, 1),
-  );
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
-};
+// Margem à direita: o último rótulo do eixo X ("30/11") não pode ser cortado
+const MARGEM = { top: 8, right: 16, bottom: 0, left: 0 };
+const TAMANHO = { width: "100%", height: 240 };
 
-export function GraficoFluxo({ meses, parcial }: { meses: ResumoMes[]; parcial: boolean }) {
-  const dados = meses.map((m) => ({ ...m, nome: nomeCompleto(m.mes) }));
+/** Receitas e despesas do período, em barras ou linhas, com a tabela dos mesmos números. */
+export function GraficoFluxo({
+  baldes,
+  granularidade,
+  parcial,
+  forma,
+  hoje,
+}: {
+  baldes: Balde[];
+  granularidade: Granularidade;
+  parcial: boolean;
+  forma: FormaFluxo;
+  hoje: string; // "AAAA-MM-DD"
+}) {
+  // Marcador em cada ponto só quando são poucos; com muitos, só no ponto sob o mouse
+  const poucosPontos = baldes.length <= 12;
+
+  const eixos = [
+    <CartesianGrid key="grade" vertical={false} stroke={GRADE} />,
+    <XAxis
+      key="x"
+      dataKey="rotulo"
+      tickLine={false}
+      axisLine={false}
+      tick={TICK}
+      interval="preserveStartEnd"
+      minTickGap={16}
+    />,
+    <YAxis key="y" width={60} tickLine={false} axisLine={false} tick={TICK} tickFormatter={reaisCurtos} />,
+  ];
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-4 text-[12px] text-musgo">
-        {(["receitas", "despesas"] as const).map((serie) => (
+        {SERIES.map((serie) => (
           <span key={serie} className="flex items-center gap-2">
-            <span className="size-2.5 rounded-[3px]" style={{ background: COR[serie] }} aria-hidden="true" />
-            {serie === "receitas" ? "Receitas" : "Despesas"}
+            <Amostra cor={COR[serie]} />
+            {NOME[serie]}
           </span>
         ))}
-        {parcial && (
-          <Badge tom="coral" className="ml-auto">
-            Dados parciais
-          </Badge>
-        )}
+        <span className="ml-auto font-mono">{POR[granularidade].legenda}</span>
+        {parcial && <Badge tom="coral">Dados parciais</Badge>}
       </div>
 
       <div aria-hidden="true">
-        <BarChart
-          responsive
-          data={dados}
-          barGap={2}
-          barCategoryGap="30%"
-          margin={{ top: 8, right: 0, bottom: 0, left: 0 }}
-          style={{ width: "100%", height: 240 }}
-        >
-          <CartesianGrid vertical={false} stroke="#141B17" />
-          <XAxis dataKey="rotulo" tickLine={false} axisLine={false} tick={TICK} />
-          <YAxis
-            width={52}
-            tickLine={false}
-            axisLine={false}
-            tick={TICK}
-            tickFormatter={(centavos: number) => compacto.format(centavos / 100)}
-          />
-          <Tooltip cursor={{ fill: "rgb(233 241 236 / .04)" }} content={(props) => <Dica {...props} />} />
-          <Bar dataKey="receitas" fill={COR.receitas} radius={[4, 4, 0, 0]} maxBarSize={18} isAnimationActive={false} />
-          <Bar dataKey="despesas" fill={COR.despesas} radius={[4, 4, 0, 0]} maxBarSize={18} isAnimationActive={false} />
-        </BarChart>
+        {forma === "barras" ? (
+          <BarChart
+            responsive
+            data={baldes}
+            barGap={2}
+            // Com muitos baldes (dias), menos vão entre eles para a barra não virar um fio
+            barCategoryGap={baldes.length > 16 ? "12%" : "30%"}
+            margin={MARGEM}
+            style={TAMANHO}
+          >
+            {eixos}
+            <Tooltip cursor={{ fill: "rgb(233 241 236 / .04)" }} content={(props) => <Dica {...props} />} />
+            {SERIES.map((serie) => (
+              <Bar
+                key={serie}
+                dataKey={serie}
+                fill={COR[serie]}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={18}
+                isAnimationActive={false}
+              />
+            ))}
+          </BarChart>
+        ) : (
+          <LineChart responsive data={cortarFuturo(baldes, hoje)} margin={MARGEM} style={TAMANHO}>
+            {eixos}
+            <Tooltip cursor={{ stroke: EIXO_ZERO, strokeWidth: 1 }} content={(props) => <Dica {...props} />} />
+            {SERIES.map((serie) => (
+              <Line
+                key={serie}
+                type="linear"
+                dataKey={serie}
+                stroke={COR[serie]}
+                strokeWidth={2}
+                dot={poucosPontos ? { r: 4, fill: COR[serie], stroke: SUPERFICIE, strokeWidth: 2 } : false}
+                activeDot={{ r: 5, fill: COR[serie], stroke: SUPERFICIE, strokeWidth: 2 }}
+                isAnimationActive={false}
+              />
+            ))}
+          </LineChart>
+        )}
       </div>
 
       <details className="text-[13px]">
@@ -92,19 +144,19 @@ export function GraficoFluxo({ meses, parcial }: { meses: ResumoMes[]; parcial: 
         <table className="mt-3 w-full text-left">
           <thead>
             <tr className="rotulo">
-              <th scope="col" className="py-1.5 font-medium">Mês</th>
+              <th scope="col" className="py-1.5 font-medium">{POR[granularidade].coluna}</th>
               <th scope="col" className="py-1.5 text-right font-medium">Receitas</th>
               <th scope="col" className="py-1.5 text-right font-medium">Despesas</th>
               <th scope="col" className="py-1.5 text-right font-medium">Resultado</th>
             </tr>
           </thead>
           <tbody className="num font-mono">
-            {dados.map((m) => (
-              <tr key={m.mes} className="border-t border-superficie-3">
-                <th scope="row" className="py-1.5 font-sans font-normal">{m.nome}</th>
-                <td className="py-1.5 text-right">{formatarBRL(m.receitas)}</td>
-                <td className="py-1.5 text-right">{formatarBRL(m.despesas)}</td>
-                <td className="py-1.5 text-right">{formatarBRL(m.receitas - m.despesas)}</td>
+            {baldes.map((b) => (
+              <tr key={b.inicio} className="border-t border-superficie-3">
+                <th scope="row" className="py-1.5 font-sans font-normal">{b.nome}</th>
+                <td className="py-1.5 text-right">{formatarBRL(b.receitas)}</td>
+                <td className="py-1.5 text-right">{formatarBRL(b.despesas)}</td>
+                <td className="py-1.5 text-right">{formatarBRL(b.receitas - b.despesas)}</td>
               </tr>
             ))}
           </tbody>

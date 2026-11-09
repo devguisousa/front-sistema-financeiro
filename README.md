@@ -81,10 +81,24 @@ src/
   escolhido (mesmos atalhos e datas do Relatório, na URL) e comparam com o
   período anterior do mesmo tamanho: o mês (ou meses) antes, para meses
   inteiros; a mesma quantidade de dias logo antes, para datas livres. Os totais
-  vêm de `GET /transacao/resumo`. O gráfico de fluxo junta as transações dos
-  últimos 6 meses página a página (até 10 páginas de 100); se passar disso,
-  mostra "Dados parciais". Saldo, fluxo e vencimentos não dependem do período.
-  Transferências não contam como receita nem despesa.
+  vêm de `GET /transacao/resumo`. Os gráficos também seguem o período:
+  - **Fluxo de caixa** (barras ou linhas, com tabela): receitas e despesas por
+    dia (até 31 dias), por semana (blocos de 7 dias a partir do início, até 92
+    dias) ou por mês. Nas linhas, o que ainda não chegou fica sem ponto, em vez
+    de cair para zero.
+  - **Resultado acumulado** (área): receitas menos despesas somadas dia a dia
+    desde o início do período, até hoje (ou até o último lançamento agendado).
+    Verde acima de zero, coral abaixo; a tabela lista os dias com movimento.
+  - **Por categoria** (barras ou rosca, despesas ou receitas): usa os totais
+    por categoria do resumo. Com mais de 7 categorias, as 6 maiores aparecem e
+    o resto vira "Outras". As cores da rosca seguem a ordem da maior para a
+    menor, então mudam quando muda a ordem.
+
+  Fluxo e acumulado buscam as transações do período (`GET /transacao` com
+  `inicio` e `fim`, 100 por página, as páginas depois da primeira em paralelo,
+  até 20 páginas); se passar disso, mostram "Dados parciais". Saldos,
+  vencimentos e últimas transações não dependem do período. Transferências não
+  contam como receita nem despesa.
 - **Relatório:** receitas e despesas do período escolhido (atalhos ou datas De/Até),
   com totais por categoria e a lista de lançamentos. Os totais vêm da API
   (`GET /transacao/resumo`); o período fica na URL (`?de=AAAA-MM-DD&ate=AAAA-MM-DD`)

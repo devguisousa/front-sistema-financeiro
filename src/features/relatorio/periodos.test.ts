@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   atalhoDoPeriodo,
+  diasDoPeriodo,
   diaValido,
   erroDoPeriodo,
   formatarDia,
@@ -9,6 +10,8 @@ import {
   periodoDaUrl,
   periodoDoAtalho,
   rotuloDoPeriodo,
+  somarDias,
+  ultimoDiaDoMes,
 } from "./periodos";
 
 const agora = new Date(2026, 1, 15, 10, 30); // 15/02/2026, local
@@ -87,5 +90,25 @@ describe("períodos do relatório", () => {
     expect(rotuloDoPeriodo({ de: "2026-01-01", ate: "2026-12-31" })).toBe("2026");
     expect(rotuloDoPeriodo({ de: "2026-01-01", ate: "2026-02-28" })).toBeNull();
     expect(rotuloDoPeriodo({ de: "2026-02-01", ate: "2026-02-27" })).toBeNull();
+  });
+
+  it("conta os dias do período, os dois incluídos", () => {
+    expect(diasDoPeriodo({ de: "2026-11-01", ate: "2026-11-01" })).toBe(1);
+    expect(diasDoPeriodo({ de: "2026-11-01", ate: "2026-11-30" })).toBe(30);
+    expect(diasDoPeriodo({ de: "2026-01-01", ate: "2026-12-31" })).toBe(365);
+    // Fevereiro de 2028 tem 29 dias
+    expect(diasDoPeriodo({ de: "2028-02-01", ate: "2028-03-01" })).toBe(30);
+  });
+
+  it("soma dias atravessando meses e anos", () => {
+    expect(somarDias("2026-11-28", 7)).toBe("2026-12-05");
+    expect(somarDias("2026-12-31", 1)).toBe("2027-01-01");
+    expect(somarDias("2026-03-01", -1)).toBe("2026-02-28");
+  });
+
+  it("último dia do mês, inclusive em fevereiro bissexto", () => {
+    expect(ultimoDiaDoMes("2026-11-07")).toBe("2026-11-30");
+    expect(ultimoDiaDoMes("2026-02-10")).toBe("2026-02-28");
+    expect(ultimoDiaDoMes("2028-02-01")).toBe("2028-02-29");
   });
 });

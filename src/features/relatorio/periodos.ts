@@ -80,10 +80,33 @@ const partes = (dia: string) => {
   return { ano, mes, d };
 };
 
+/** Quantos dias o período tem (os dois extremos contam). */
+export function diasDoPeriodo(periodo: Periodo): number {
+  // Conta em UTC: no fuso local, o horário de verão faz um dia ter 23h ou 25h
+  const utc = (dia: string) => {
+    const { ano, mes, d } = partes(dia);
+    const data = new Date(0);
+    data.setUTCFullYear(ano, mes - 1, d);
+    return data.getTime();
+  };
+  return Math.round((utc(periodo.ate) - utc(periodo.de)) / (24 * 60 * 60 * 1000)) + 1;
+}
+
+/** "AAAA-MM-DD" mais `n` dias (n pode ser negativo). */
+export function somarDias(dia: string, n: number): string {
+  const { ano, mes, d } = partes(dia);
+  return hojeLocal(dataLocal(ano, mes - 1, d + n));
+}
+
+/** Último dia do mês de `dia`: "2026-02-10" → "2026-02-28". */
+export function ultimoDiaDoMes(dia: string): string {
+  const { ano, mes } = partes(dia);
+  return hojeLocal(dataLocal(ano, mes, 0));
+}
+
 /** O período começa no dia 1 e termina no último dia de um mês. */
 function mesesInteiros(periodo: Periodo): boolean {
-  const fim = partes(periodo.ate);
-  return periodo.de.endsWith("-01") && periodo.ate === hojeLocal(dataLocal(fim.ano, fim.mes, 0));
+  return periodo.de.endsWith("-01") && periodo.ate === ultimoDiaDoMes(periodo.ate);
 }
 
 /**
@@ -102,13 +125,7 @@ export function periodoAnterior(periodo: Periodo): Periodo {
     };
   }
 
-  // Conta os dias em UTC: no fuso local, o horário de verão faz um dia ter 23h ou 25h
-  const utc = ({ ano, mes, d }: ReturnType<typeof partes>) => {
-    const data = new Date(0);
-    data.setUTCFullYear(ano, mes - 1, d);
-    return data.getTime();
-  };
-  const dias = Math.round((utc(fim) - utc(ini)) / (24 * 60 * 60 * 1000)) + 1;
+  const dias = diasDoPeriodo(periodo);
 
   return {
     de: hojeLocal(dataLocal(ini.ano, ini.mes - 1, ini.d - dias)),
