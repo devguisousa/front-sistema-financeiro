@@ -77,9 +77,14 @@ src/
   `localStorage` (a API o devolve no corpo). A renovação roda uma vez por vez,
   inclusive entre abas (`navigator.locks`), porque reutilizar um refresh antigo
   derruba todas as sessões. Sair numa aba sai em todas.
-- **Visão geral:** o painel junta as transações dos últimos 6 meses página a
-  página (até 10 páginas de 100). Se passar disso, o gráfico mostra "Dados
-  parciais". Transferências não contam como receita nem despesa.
+- **Visão geral:** os cartões de receitas, despesas e resultado seguem o período
+  escolhido (mesmos atalhos e datas do Relatório, na URL) e comparam com o
+  período anterior do mesmo tamanho: o mês (ou meses) antes, para meses
+  inteiros; a mesma quantidade de dias logo antes, para datas livres. Os totais
+  vêm de `GET /transacao/resumo`. O gráfico de fluxo junta as transações dos
+  últimos 6 meses página a página (até 10 páginas de 100); se passar disso,
+  mostra "Dados parciais". Saldo, fluxo e vencimentos não dependem do período.
+  Transferências não contam como receita nem despesa.
 - **Relatório:** receitas e despesas do período escolhido (atalhos ou datas De/Até),
   com totais por categoria e a lista de lançamentos. Os totais vêm da API
   (`GET /transacao/resumo`); o período fica na URL (`?de=AAAA-MM-DD&ate=AAAA-MM-DD`)

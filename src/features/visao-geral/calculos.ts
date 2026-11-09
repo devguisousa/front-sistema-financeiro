@@ -3,8 +3,9 @@ import { diasAteVencimento, mesLocal, nomeDoMes } from "../../lib/datas";
 import { paraCentavos } from "../../lib/dinheiro";
 import type { ContaPagar, ContaReceber, Transacao } from "../../lib/tipos";
 
-// A API não tem rota de resumo: o painel junta as transações da janela de
-// 6 meses página a página (100 por vez), com teto de 10 páginas.
+// A rota de resumo da API soma um período por vez. Para o gráfico de 6 meses,
+// o painel junta as transações da janela página a página (100 por vez), com
+// teto de 10 páginas. Os cartões do período usam a rota de resumo.
 const LIMITE = 100;
 const TETO_DE_PAGINAS = 10;
 
@@ -74,7 +75,7 @@ export function resumirMeses(transacoes: Transacao[], agora: Date, meses = 6): R
   return [...resumo.values()];
 }
 
-/** Variação percentual sobre o mês anterior; null quando o anterior é zero. */
+/** Variação percentual sobre o período anterior; null quando o anterior é zero. */
 export function variacao(atual: number, anterior: number): number | null {
   if (anterior === 0) return null;
   return ((atual - anterior) / Math.abs(anterior)) * 100;

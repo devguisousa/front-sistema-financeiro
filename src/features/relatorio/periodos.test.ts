@@ -5,8 +5,10 @@ import {
   erroDoPeriodo,
   formatarDia,
   limitesParaApi,
+  periodoAnterior,
   periodoDaUrl,
   periodoDoAtalho,
+  rotuloDoPeriodo,
 } from "./periodos";
 
 const agora = new Date(2026, 1, 15, 10, 30); // 15/02/2026, local
@@ -64,5 +66,26 @@ describe("períodos do relatório", () => {
 
   it("formata o dia para exibir", () => {
     expect(formatarDia("2026-01-05")).toBe("05/01/2026");
+  });
+
+  it("período anterior: meses inteiros voltam meses, o resto volta a mesma quantidade de dias", () => {
+    expect(periodoAnterior({ de: "2026-02-01", ate: "2026-02-28" })).toEqual({ de: "2026-01-01", ate: "2026-01-31" });
+    expect(periodoAnterior({ de: "2026-01-01", ate: "2026-01-31" })).toEqual({ de: "2025-12-01", ate: "2025-12-31" });
+    expect(periodoAnterior({ de: "2026-03-01", ate: "2026-04-30" })).toEqual({ de: "2026-01-01", ate: "2026-02-28" });
+    expect(periodoAnterior({ de: "2026-01-01", ate: "2026-12-31" })).toEqual({ de: "2025-01-01", ate: "2025-12-31" });
+    expect(periodoAnterior({ de: "2026-01-17", ate: "2026-02-15" })).toEqual({ de: "2025-12-18", ate: "2026-01-16" });
+    expect(periodoAnterior({ de: "2026-03-01", ate: "2026-03-01" })).toEqual({ de: "2026-02-28", ate: "2026-02-28" });
+  });
+
+  it("período anterior atravessa o horário de verão sem perder dia", () => {
+    // Out/2018: o Brasil ainda tinha horário de verão (começou em 04/11/2018)
+    expect(periodoAnterior({ de: "2018-11-05", ate: "2018-11-10" })).toEqual({ de: "2018-10-30", ate: "2018-11-04" });
+  });
+
+  it("rótulo curto: nome do mês, ano inteiro ou nada", () => {
+    expect(rotuloDoPeriodo({ de: "2026-02-01", ate: "2026-02-28" })).toBe("fev");
+    expect(rotuloDoPeriodo({ de: "2026-01-01", ate: "2026-12-31" })).toBe("2026");
+    expect(rotuloDoPeriodo({ de: "2026-01-01", ate: "2026-02-28" })).toBeNull();
+    expect(rotuloDoPeriodo({ de: "2026-02-01", ate: "2026-02-27" })).toBeNull();
   });
 });

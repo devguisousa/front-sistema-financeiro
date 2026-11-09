@@ -1,17 +1,13 @@
 import { CalendarSearch, Lock } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router";
 import {
   Badge,
-  Button,
   Card,
   Empty,
   ErroCarregar,
-  Field,
-  Input,
   PageHeader,
   Pagination,
-  Segmentado,
   Skeleton,
   Table,
   TBody,
@@ -26,100 +22,13 @@ import { formatarBRL, formatarValor, paraCentavos } from "../../lib/dinheiro";
 import { useTitulo } from "../../lib/titulo";
 import type { ResumoCategoria, TipoTransacao } from "../../lib/tipos";
 import { origemAutomatica } from "../transacoes/useTransacoes";
-import {
-  ATALHOS,
-  type Atalho,
-  atalhoDoPeriodo,
-  erroDoPeriodo,
-  formatarDia,
-  type Periodo,
-  periodoDaUrl,
-  periodoDoAtalho,
-} from "./periodos";
+import { FiltroPeriodo } from "./FiltroPeriodo";
+import { type Periodo, periodoDaUrl } from "./periodos";
 import { useLancamentosDoPeriodo, useResumo } from "./useRelatorio";
 
 const numeroOuNada = (texto: string | null) => (texto && /^\d+$/.test(texto) ? Number(texto) : undefined);
 
 const lancamentos = (n: number, de: string) => `${n} ${n === 1 ? "lançamento" : "lançamentos"} de ${de}`;
-
-/** Atalhos + datas livres. As datas só valem ao clicar em "Ver período". */
-function FiltroPeriodo({
-  periodo,
-  agora,
-  aoMudar,
-}: {
-  periodo: Periodo;
-  agora: Date;
-  aoMudar(periodo: Periodo): void;
-}) {
-  const [de, setDe] = useState(periodo.de);
-  const [ate, setAte] = useState(periodo.ate);
-  const [erro, setErro] = useState<string | null>(null);
-
-  function aplicar(evento: FormEvent) {
-    evento.preventDefault();
-    const escolhido = { de, ate };
-    const mensagem = erroDoPeriodo(escolhido);
-    setErro(mensagem);
-    if (!mensagem) aoMudar(escolhido);
-  }
-
-  const atalho: Atalho | "" = atalhoDoPeriodo(periodo, agora) ?? "";
-
-  return (
-    <Card aria-labelledby="titulo-periodo" className="flex flex-col gap-4 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="titulo-periodo" className="text-[16px] font-semibold tracking-[-.02em]">
-          Período
-        </h2>
-        <span className="font-mono text-[12px] text-musgo">
-          {formatarDia(periodo.de)} a {formatarDia(periodo.ate)}
-        </span>
-      </div>
-
-      <Segmentado<Atalho | "">
-        rotulo="Atalhos de período"
-        valor={atalho}
-        aoMudar={(valor) => valor && aoMudar(periodoDoAtalho(valor, agora))}
-        opcoes={ATALHOS}
-        className="self-start"
-      />
-
-      <form onSubmit={aplicar} noValidate className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-end gap-3">
-          <Field rotulo="De" className="w-[170px]">
-            {(props) => (
-              <Input
-                {...props}
-                {...(erro ? { "aria-invalid": true } : {})}
-                type="date"
-                value={de}
-                onChange={(e) => setDe(e.target.value)}
-              />
-            )}
-          </Field>
-          <Field rotulo="Até" className="w-[170px]">
-            {(props) => (
-              <Input
-                {...props}
-                {...(erro ? { "aria-invalid": true } : {})}
-                type="date"
-                value={ate}
-                onChange={(e) => setAte(e.target.value)}
-              />
-            )}
-          </Field>
-          <Button type="submit">Ver período</Button>
-        </div>
-        {erro && (
-          <p role="alert" className="text-[12px] text-coral">
-            {erro}
-          </p>
-        )}
-      </form>
-    </Card>
-  );
-}
 
 function CartaoTotal({
   rotulo,

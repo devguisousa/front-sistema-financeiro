@@ -1,6 +1,6 @@
 import { ArrowRight, WalletCards } from "lucide-react";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import {
   Badge,
   BadgeVencimento,
@@ -13,6 +13,9 @@ import { cn } from "../../lib/cn";
 import { formatarDataCurta, formatarVencimento } from "../../lib/datas";
 import { formatarBRL, formatarValor, paraCentavos } from "../../lib/dinheiro";
 import { useTitulo } from "../../lib/titulo";
+import { FiltroPeriodo } from "../relatorio/FiltroPeriodo";
+import { type Periodo, periodoAnterior, periodoDaUrl, rotuloDoPeriodo } from "../relatorio/periodos";
+import { useResumo } from "../relatorio/useRelatorio";
 import { variacao } from "./calculos";
 import { GraficoFluxo } from "./GraficoFluxo";
 import { usePainel } from "./usePainel";
@@ -78,16 +81,16 @@ function ListaCarregando({ linhas = 4 }: { linhas?: number }) {
 function ChipVariacao({
   atual,
   anterior,
-  mesAnterior,
+  base,
   subirEhBom,
 }: {
   atual: number;
   anterior: number;
-  mesAnterior: string;
+  base: string;
   subirEhBom: boolean;
 }) {
   const v = variacao(atual, anterior);
-  if (v === null) return <Badge>— vs {mesAnterior}</Badge>;
+  if (v === null) return <Badge>— vs {base}</Badge>;
 
   const arredondado = Math.round(v);
   const bom = arredondado === 0 ? null : arredondado > 0 === subirEhBom;
@@ -96,7 +99,7 @@ function ChipVariacao({
   return (
     <Badge tom={bom === null ? "neutro" : bom ? "verde" : "coral"}>
       {sinal}
-      {Math.abs(arredondado)}% vs {mesAnterior}
+      {Math.abs(arredondado)}% vs {base}
     </Badge>
   );
 }
@@ -115,7 +118,7 @@ function CartaoMes({
   chip?: ReactNode;
 }) {
   return (
-    <Card className="flex flex-col gap-3 p-5">
+    <Card aria-label={rotulo} className="flex flex-col gap-3 p-5">
       <span className="rotulo">{rotulo}</span>
       {valor === undefined ? (
         <Skeleton className="h-8 w-36" />
@@ -137,8 +140,13 @@ export function PaginaVisaoGeral() {
   const painel = usePainel();
   const { contas, saldos, saldoTotal, janela, meses, vencimentos, ultimas, agora } = painel;
 
-  const atual = meses?.at(-1);
-  const anterior = meses?.at(-2);
+  // O período (?de=&ate=) só muda os cartões de receitas, despesas e resultado
+  const [params, setParams] = useSearchParams();
+  const periodo = periodoDaUrl(params, agora);
+  const base = periodoAnterior(periodo);
+  const resumo = useResumo(periodo);
+  const resumoBase = useResumo(base);
+
   const qtdContas = contas.data?.length;
 
   const cabecalho = (
@@ -181,12 +189,37 @@ export function PaginaVisaoGeral() {
     );
   }
 
-  const nomeAnterior = anterior?.rotulo ?? "";
   const totalPorConta = Math.max(saldoTotal ?? 0, 1);
+
+  const rotulo = rotuloDoPeriodo(periodo);
+  const doPeriodo = (nome: string) => (rotulo ? `${nome} · ${rotulo}` : nome);
+  const nomeBase = rotuloDoPeriodo(base) ?? "período anterior";
+
+  const totais = (dados: typeof resumo.data) =>
+    dados && {
+      receitas: paraCentavos(dados.receitas),
+      despesas: paraCentavos(dados.despesas),
+      resultado: paraCentavos(dados.resultado),
+    };
+  const atual = totais(resumo.data);
+  const anterior = totais(resumoBase.data);
+  const comparar = atual && anterior;
+
+  function escolher(novo: Periodo) {
+    setParams({ de: novo.de, ate: novo.ate });
+  }
 
   return (
     <>
       {cabecalho}
+
+      <FiltroPeriodo
+        key={`${periodo.de}|${periodo.ate}`}
+        periodo={periodo}
+        agora={agora}
+        aoMudar={escolher}
+        descricao="Vale para receitas, despesas e resultado. Saldo, fluxo e vencimentos não mudam."
+      />
 
       <div className="grid gap-5 lg:grid-cols-[1.1fr_2fr]">
         <Card aria-labelledby="titulo-saldo" className="flex flex-col justify-between gap-6 p-6">
@@ -208,53 +241,62 @@ export function PaginaVisaoGeral() {
           <p className="text-[13px] text-musgo">Soma do saldo atual de todas as contas.</p>
         </Card>
 
-        <div className="grid gap-5 sm:grid-cols-3">
-          <CartaoMes
-            rotulo={`Receitas · ${atual?.rotulo ?? ""}`}
-            valor={atual?.receitas}
-            cor="text-verde"
-            detalhe={lancamentos(atual?.qtdReceitas ?? 0, "entrada")}
-            chip={
-              atual &&
-              anterior && (
-                <ChipVariacao atual={atual.receitas} anterior={anterior.receitas} mesAnterior={nomeAnterior} subirEhBom />
-              )
-            }
-          />
-          <CartaoMes
-            rotulo={`Despesas · ${atual?.rotulo ?? ""}`}
-            valor={atual?.despesas}
-            cor="text-coral"
-            detalhe={lancamentos(atual?.qtdDespesas ?? 0, "saída")}
-            chip={
-              atual &&
-              anterior && (
-                <ChipVariacao
-                  atual={atual.despesas}
-                  anterior={anterior.despesas}
-                  mesAnterior={nomeAnterior}
-                  subirEhBom={false}
-                />
-              )
-            }
-          />
-          <CartaoMes
-            rotulo={`Resultado · ${atual?.rotulo ?? ""}`}
-            valor={atual ? atual.receitas - atual.despesas : undefined}
-            detalhe="Receitas menos despesas"
-            chip={
-              atual &&
-              anterior && (
-                <ChipVariacao
-                  atual={atual.receitas - atual.despesas}
-                  anterior={anterior.receitas - anterior.despesas}
-                  mesAnterior={nomeAnterior}
-                  subirEhBom
-                />
-              )
-            }
-          />
-        </div>
+        {resumo.isError || resumoBase.isError ? (
+          <Card className="flex items-center">
+            <ErroCarregar
+              erro={resumo.error ?? resumoBase.error}
+              aoTentar={() => {
+                if (resumo.isError) void resumo.refetch();
+                if (resumoBase.isError) void resumoBase.refetch();
+              }}
+            />
+          </Card>
+        ) : (
+          <div
+            className={cn(
+              "grid gap-5 transition-opacity sm:grid-cols-3",
+              (resumo.isPlaceholderData || resumoBase.isPlaceholderData) && "opacity-60",
+            )}
+          >
+            <CartaoMes
+              rotulo={doPeriodo("Receitas")}
+              valor={atual?.receitas}
+              cor="text-verde"
+              detalhe={lancamentos(resumo.data?.qtdReceitas ?? 0, "entrada")}
+              chip={
+                comparar && (
+                  <ChipVariacao atual={atual.receitas} anterior={anterior.receitas} base={nomeBase} subirEhBom />
+                )
+              }
+            />
+            <CartaoMes
+              rotulo={doPeriodo("Despesas")}
+              valor={atual?.despesas}
+              cor="text-coral"
+              detalhe={lancamentos(resumo.data?.qtdDespesas ?? 0, "saída")}
+              chip={
+                comparar && (
+                  <ChipVariacao
+                    atual={atual.despesas}
+                    anterior={anterior.despesas}
+                    base={nomeBase}
+                    subirEhBom={false}
+                  />
+                )
+              }
+            />
+            <CartaoMes
+              rotulo={doPeriodo("Resultado")}
+              valor={atual?.resultado}
+              detalhe="Receitas menos despesas"
+              chip={
+                comparar && (
+                  <ChipVariacao atual={atual.resultado} anterior={anterior.resultado} base={nomeBase} subirEhBom />
+                )
+              }
+            />
+          </div>
+        )}
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[2fr_1fr]">

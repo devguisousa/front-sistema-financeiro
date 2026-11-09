@@ -1,4 +1,4 @@
-import { hojeLocal } from "../../lib/datas";
+import { hojeLocal, nomeDoMes } from "../../lib/datas";
 
 /** Período em dias locais "AAAA-MM-DD"; os dois dias entram. */
 export type Periodo = { de: string; ate: string };
@@ -73,6 +73,57 @@ export function limitesParaApi(periodo: Periodo): { inicio: string; fim: string 
     inicio: dataLocal(a1, m1 - 1, d1).toISOString(),
     fim: dataLocal(a2, m2 - 1, d2, 23, 59, 59, 999).toISOString(),
   };
+}
+
+const partes = (dia: string) => {
+  const [ano = 0, mes = 1, d = 1] = dia.split("-").map(Number);
+  return { ano, mes, d };
+};
+
+/** O período começa no dia 1 e termina no último dia de um mês. */
+function mesesInteiros(periodo: Periodo): boolean {
+  const fim = partes(periodo.ate);
+  return periodo.de.endsWith("-01") && periodo.ate === hojeLocal(dataLocal(fim.ano, fim.mes, 0));
+}
+
+/**
+ * Período do mesmo tamanho logo antes deste. Meses inteiros voltam meses
+ * (fevereiro → janeiro); o resto volta a mesma quantidade de dias.
+ */
+export function periodoAnterior(periodo: Periodo): Periodo {
+  const ini = partes(periodo.de);
+  const fim = partes(periodo.ate);
+
+  if (mesesInteiros(periodo)) {
+    const meses = (fim.ano - ini.ano) * 12 + (fim.mes - ini.mes) + 1;
+    return {
+      de: hojeLocal(dataLocal(ini.ano, ini.mes - 1 - meses, 1)),
+      ate: hojeLocal(dataLocal(ini.ano, ini.mes - 1, 0)),
+    };
+  }
+
+  // Conta os dias em UTC: no fuso local, o horário de verão faz um dia ter 23h ou 25h
+  const utc = ({ ano, mes, d }: ReturnType<typeof partes>) => {
+    const data = new Date(0);
+    data.setUTCFullYear(ano, mes - 1, d);
+    return data.getTime();
+  };
+  const dias = Math.round((utc(fim) - utc(ini)) / (24 * 60 * 60 * 1000)) + 1;
+
+  return {
+    de: hojeLocal(dataLocal(ini.ano, ini.mes - 1, ini.d - dias)),
+    ate: hojeLocal(dataLocal(ini.ano, ini.mes - 1, ini.d - 1)),
+  };
+}
+
+/** Nome curto do período: "fev" (um mês inteiro), "2026" (ano inteiro) ou null. */
+export function rotuloDoPeriodo(periodo: Periodo): string | null {
+  const ini = partes(periodo.de);
+  const fim = partes(periodo.ate);
+  if (!mesesInteiros(periodo)) return null;
+  if (ini.ano === fim.ano && ini.mes === fim.mes) return nomeDoMes(periodo.de.slice(0, 7));
+  if (periodo.de === `${ini.ano}-01-01` && periodo.ate === `${ini.ano}-12-31`) return String(ini.ano);
+  return null;
 }
 
 /** "2026-11-01" → "01/11/2026" */

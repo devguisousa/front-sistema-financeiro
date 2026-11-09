@@ -125,6 +125,19 @@ export const apiVazia = {
   "GET /contaPagar": () => listagem("contaPagar", []),
   "GET /contaReceber": () => listagem("contaReceber", [], { totalPagina: 1 }),
   "GET /transacao": () => listagem("transacao", []),
+  "GET /transacao/resumo": () => ({
+    status: 200,
+    corpo: {
+      inicio: "",
+      fim: "",
+      receitas: "0.00",
+      despesas: "0.00",
+      resultado: "0.00",
+      qtdReceitas: 0,
+      qtdDespesas: 0,
+      porCategoria: [],
+    },
+  }),
   "GET /transferencias": () => listagem("transferencias", []),
 };
 
